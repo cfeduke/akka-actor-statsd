@@ -1,12 +1,28 @@
 package com.deploymentzone.actor.protocol
 
-abstract class CounterMessage[T](val bucket: String)(val value: T, val samplingRate: Double = 1.0) {
+import com.deploymentzone.actor.util.StatsDBucketValidator
+
+abstract class CounterMessage[T](private[this] var _bucket: String)(val value: T, val samplingRate: Double = 1.0) {
   val symbol: String
 
+  require(_bucket != null)
+  require(StatsDBucketValidator(_bucket),
+    s"reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in buckets")
+
+  private[actor] def bucket = _bucket
+
+  private[actor] def namespace(namespace: String) = {
+    _bucket = namespace match {
+      case "" => _bucket
+      case null => _bucket
+      case _ => s"$namespace.${_bucket}"
+    }
+    this
+  }
   override def toString =
     samplingRate match {
-      case 1.0  => s"$bucket:$value|$symbol"
-      case _    => s"$bucket:$value|$symbol|@$samplingRate"
+      case 1.0  => s"${_bucket}:$value|$symbol"
+      case _    => s"${_bucket}:$value|$symbol|@$samplingRate"
     }
 }
 

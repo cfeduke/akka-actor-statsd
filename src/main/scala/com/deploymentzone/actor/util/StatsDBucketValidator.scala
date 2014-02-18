@@ -17,6 +17,10 @@ object StatsDBucketValidator {
    * Validates that a string contains no special characters.
    * @param name string to validate.
    */
-  def apply(name: String): Boolean = reserved.findFirstIn(name).fold(true)(_ => false)
+  def apply(name: String): Boolean =
+    name != null &&
+    reserved.findFirstIn(name).fold(true)(_ => false) &&
+    !name.startsWith(".") &&
+    !name.endsWith(".")
 
 }

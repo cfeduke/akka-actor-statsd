@@ -7,7 +7,6 @@ class StatsActor(val namespace: String = "")
   extends Actor
   with ActorLogging {
 
-  require(namespace != null, "namespace must not be null")
   require(StatsDBucketValidator(namespace),
     s"reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in namespaces")
 
