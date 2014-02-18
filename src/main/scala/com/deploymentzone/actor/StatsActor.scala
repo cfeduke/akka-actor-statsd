@@ -8,7 +8,7 @@ class StatsActor(val namespace: String = "")
   with ActorLogging {
 
   require(StatsDBucketValidator(namespace),
-    s"reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in namespaces")
+    s"""reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in namespaces and namespaces may not start or end with a period (".")""")
 
   def receive = {
     case _ =>

@@ -7,7 +7,7 @@ abstract class CounterMessage[T](private[this] var _bucket: String)(val value: T
 
   require(_bucket != null)
   require(StatsDBucketValidator(_bucket),
-    s"reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in buckets")
+    s"""reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in buckets and buckets may not start or end with a period (".")""")
 
   private[actor] def bucket = _bucket
 
