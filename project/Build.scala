@@ -20,6 +20,7 @@ object Build extends sbt.Build {
 
     object Versions {
       val akka = "2.2.3"
+      val scalatest = "2.0"
     }
 
     val compileDependencies = Seq(
@@ -27,7 +28,8 @@ object Build extends sbt.Build {
     )
 
     val testDependencies = Seq(
-      "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test"
+      "com.typesafe.akka" %% "akka-testkit" % Versions.akka % "test",
+      "org.scalatest" %% "scalatest" % Versions.scalatest % "test"
     )
 
     def apply(): Seq[ModuleID] = compileDependencies ++ testDependencies
