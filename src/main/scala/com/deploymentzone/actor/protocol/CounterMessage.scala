@@ -6,6 +6,6 @@ abstract class CounterMessage[T](val bucket: String, val value: T, val samplingR
   override def toString =
     samplingRate match {
       case 1.0  => s"$bucket:$value|$symbol"
-      case _    => ""
+      case _    => s"$bucket:$value|$symbol|@$samplingRate"
     }
 }

@@ -14,6 +14,11 @@ class CounterMessageSpec
           subject.toString should be ("deploymentzone.sprockets:123|x")
         }
       }
+      "using a 5.6 sampling rate" should {
+        "return the expected value" in new Concrete(1337, 5.6) {
+          subject.toString should be ("deploymentzone.sprockets:1337|x|@5.6")
+        }
+      }
     }
   }
 
