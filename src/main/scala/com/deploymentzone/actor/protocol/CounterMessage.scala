@@ -2,7 +2,7 @@ package com.deploymentzone.actor.protocol
 
 import com.deploymentzone.actor.util.StatsDBucketValidator
 
-abstract class CounterMessage[T](private[this] var _bucket: String)(val value: T, val samplingRate: Double = 1.0) {
+abstract class CounterMessage[+T](private[this] var _bucket: String)(val value: T, val samplingRate: Double = 1.0) {
   val symbol: String
 
   require(_bucket != null)

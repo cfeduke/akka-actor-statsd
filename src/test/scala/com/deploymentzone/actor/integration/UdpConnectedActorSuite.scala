@@ -15,6 +15,7 @@ class UdpConnectedActorSuite
     val listener = system.actorOf(UdpListenerActor.props(testActor))
     val address = expectMsgClass(classOf[InetSocketAddress])
     val connected = system.actorOf(UdpConnectedActor.props(address, testActor))
+    connected ! UdpConnected.Connect
     expectMsg(UdpConnected.Connected)
     connected ! "data"
     expectMsg("data")
