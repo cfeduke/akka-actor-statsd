@@ -3,7 +3,7 @@ package com.deploymentzone.actor.integration
 import com.deploymentzone.actor.{StatsActor, UdpListenerActor, TestKit}
 import org.scalatest.{WordSpecLike, WordSpec, FunSuiteLike, Matchers}
 import java.net.InetSocketAddress
-import com.deploymentzone.actor.protocol.Increment
+import com.deploymentzone.actor.protocol.{Gauge, Increment}
 import akka.testkit.ImplicitSender
 import akka.io.Udp
 
@@ -21,7 +21,17 @@ class StatsActorSpec
         stats ! msg
         expectMsg(msg.toString)
 
-        listener ! Udp.Unbind
+        shutdown()
+      }
+    }
+    "initialized with a namespace" should {
+      "send the expected message" in new Environment {
+        val stats = system.actorOf(StatsActor.props(address, "name.space"), "stats-ns")
+        val msg = Gauge("gauge")(340L)
+        stats ! msg
+        expectMsg(s"name.space.$msg")
+
+        shutdown()
       }
     }
   }
@@ -29,6 +39,10 @@ class StatsActorSpec
   private class Environment {
     val listener = system.actorOf(UdpListenerActor.props(testActor), "listener")
     val address = expectMsgClass(classOf[InetSocketAddress])
+
+    def shutdown() {
+      listener ! Udp.Unbind
+    }
   }
 
 }

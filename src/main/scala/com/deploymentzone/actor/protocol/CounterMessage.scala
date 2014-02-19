@@ -13,8 +13,8 @@ abstract class CounterMessage[+T](private[this] var _bucket: String)(val value: 
 
   private[actor] def namespace(namespace: String) = {
     _bucket = namespace match {
-      case "" => _bucket
       case null => _bucket
+      case "" => _bucket
       case _ => s"$namespace.${_bucket}"
     }
     this

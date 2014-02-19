@@ -16,7 +16,7 @@ class StatsActor(val address: InetSocketAddress, val namespace: String = "")
 
   override def connection = _connection
 
-  override def process(msg: CounterMessage[_]) = msg.toString
+  override def process(msg: CounterMessage[_]) = msg.namespace(namespace).toString
 
 }
 
