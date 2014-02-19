@@ -38,8 +38,9 @@ class StatsActorSpec
     }
     "initialized with a null address" should {
       "throw an exception" in new Environment {
+        val inetSocketAddress: InetSocketAddress = null
         val probe = TestProbe()
-        probe watch system.actorOf(StatsActor.props(null))
+        probe watch system.actorOf(StatsActor.props(inetSocketAddress), "stats-failure")
         probe expectMsgClass classOf[Terminated]
 
         shutdown()
@@ -58,7 +59,7 @@ class StatsActorSpec
   }
 
   private class Environment {
-    val listener = system.actorOf(UdpListenerActor.props(testActor), "listener")
+    val listener = system.actorOf(UdpListenerActor.props(testActor))
     val address = expectMsgClass(classOf[InetSocketAddress])
 
     def shutdown() {

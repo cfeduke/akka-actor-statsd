@@ -10,7 +10,7 @@ import com.deploymentzone.actor.protocol.CounterMessage
  * @param address hostname and port (UDP) of the StatsD instance
  * @param namespace optional namespace to prefix all counter messages with
  */
-class StatsActor(val address: InetSocketAddress, val namespace: String = "")
+class StatsActor(val address: InetSocketAddress, val namespace: String)
   extends Actor
   with StatsProtocolImplementation {
 
@@ -27,6 +27,13 @@ class StatsActor(val address: InetSocketAddress, val namespace: String = "")
 }
 
 object StatsActor {
+  private val DEFAULT_STATSD_UDP_PORT = 8125
+
   def props(address: InetSocketAddress, namespace: String) = Props(new StatsActor(address, namespace))
-  def props(address: InetSocketAddress) = Props(new StatsActor(address))
+  def props(address: InetSocketAddress) = Props(new StatsActor(address, ""))
+  def props(hostname: String, port: Int, namespace: String = "") =
+    Props(new StatsActor(new InetSocketAddress(hostname, port), namespace))
+  def props(hostname: String, namespace: String) =
+    Props(new StatsActor(new InetSocketAddress(hostname, DEFAULT_STATSD_UDP_PORT), namespace))
+  def props(hostname: String): Props = props(hostname, "")
 }
