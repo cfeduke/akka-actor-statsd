@@ -2,7 +2,7 @@ package com.deploymentzone.actor.protocol
 
 import com.deploymentzone.actor.util.StatsDBucketValidator
 
-abstract class CounterMessage[T](private[this] var _bucket: String)(val value: T, val samplingRate: Double = 1.0) {
+abstract class CounterMessage[+T](private[this] var _bucket: String)(val value: T, val samplingRate: Double = 1.0) {
   val symbol: String
 
   require(_bucket != null)
@@ -11,10 +11,11 @@ abstract class CounterMessage[T](private[this] var _bucket: String)(val value: T
 
   private[actor] def bucket = _bucket
 
+  //TODO I'm torn on making namespace immutable and have this method return a new instance of CounterMessage
   private[actor] def namespace(namespace: String) = {
     _bucket = namespace match {
-      case "" => _bucket
       case null => _bucket
+      case "" => _bucket
       case _ => s"$namespace.${_bucket}"
     }
     this
