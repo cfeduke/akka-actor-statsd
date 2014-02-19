@@ -27,10 +27,21 @@ private[actor] class UdpConnectedActor(remote: InetSocketAddress, requester: Act
       connection ! UdpConnected.Send(ByteString(msg))
     case d @ UdpConnected.Disconnect => connection ! d
     case UdpConnected.Disconnected   => context.stop(self)
+    case f : UdpConnected.CommandFailed =>
+      f.cmd match {
+        case send: UdpConnected.Send => log warning s"Unable to deliver payload: ${send.payload.decodeString("utf-8")}"
+        case _                       => log warning s"CommandFailed: ${f.cmd} (${f.cmd.getClass})"
+      }
   }
 
   override def unhandled(message: Any) = {
     log.warning(s"Unhandled message: $message (${message.getClass})")
+  }
+
+  private case class Retry(message: String, attempts: Int) {
+    private val MAXIMUM_RETRIES = 2
+
+    def shouldRetry: Boolean = attempts <= MAXIMUM_RETRIES
   }
 }
 
