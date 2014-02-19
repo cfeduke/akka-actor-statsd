@@ -1,8 +1,8 @@
 package com.deploymentzone.actor.unit.protocol
 
 import org.scalatest.{Matchers, WordSpec}
-import com.deploymentzone.actor.protocol._
 import scala.concurrent.duration._
+import com.deploymentzone.actor._
 
 class CounterMessageSpec
   extends WordSpec
@@ -26,23 +26,6 @@ class CounterMessageSpec
       "using a 5.6 sampling rate" should {
         "return the expected value" in new Implementation(1337, 5.6) {
           subject.toString should be ("deploymentzone.sprockets:1337|x|@5.6")
-        }
-      }
-    }
-    "invoking namespace" when {
-      "given an empty string argument" should {
-        "return only the bucket name" in new NamespaceTest {
-          subject.namespace("").bucket should be ("bucket")
-        }
-      }
-      "given a null argument" should {
-        "return only the bucket name" in new NamespaceTest {
-          subject.namespace(null).bucket should be ("bucket")
-        }
-      }
-      "given a valid namespace" should {
-        "return the namespace.bucket" in new NamespaceTest {
-          subject.namespace("deploymentzone.ninjas").bucket should be ("deploymentzone.ninjas.bucket")
         }
       }
     }
@@ -100,8 +83,6 @@ class CounterMessageSpec
     val subject = new CounterMessage("deploymentzone.sprockets")(value, samplingRate) { override val symbol = "x" }
   }
 
-  private class NamespaceTest {
-    val subject = new CounterMessage("bucket")(1) { override val symbol = "&" }
-  }
+
 
 }

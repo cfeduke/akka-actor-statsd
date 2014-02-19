@@ -1,9 +1,9 @@
 package com.deploymentzone.actor
 
 import akka.actor._
-import com.deploymentzone.actor.util.StatsDBucketValidator
+import com.deploymentzone.actor.validation.StatsDBucketValidator
 import java.net.InetSocketAddress
-import com.deploymentzone.actor.protocol.CounterMessage
+import com.deploymentzone.actor.util.NamespaceTransformer
 
 /**
  * An actor which sends counters to a StatsD instance via connected UDP.
@@ -18,11 +18,13 @@ class StatsActor(val address: InetSocketAddress, val namespace: String)
   require(StatsDBucketValidator(namespace),
     s"""reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in namespaces and namespaces may not start or end with a period (".")""")
 
+  val namespaceTx = NamespaceTransformer(namespace)
+
   lazy val _connection: ActorRef = context.actorOf(UdpConnectedActor.props(address, self), "udp")
 
   override def connection = _connection
 
-  override def process(msg: CounterMessage[_]) = msg.namespace(namespace).toString
+  override def process(msg: CounterMessage[_]) = namespaceTx(msg)
 
 }
 

@@ -1,13 +1,12 @@
 package com.deploymentzone.actor.integration
 
-import com.deploymentzone.actor.{StatsActor, UdpListenerActor, TestKit}
+import com.deploymentzone.actor._
 import org.scalatest.{WordSpecLike, Matchers}
 import java.net.InetSocketAddress
-import com.deploymentzone.actor.protocol.{Timing, Gauge, Increment}
 import akka.testkit.{TestProbe, ImplicitSender}
 import akka.io.Udp
-import akka.actor.Terminated
 import scala.concurrent.duration._
+import akka.actor.Terminated
 
 class StatsActorSpec
   extends TestKit("stats-actor-suite")
@@ -34,6 +33,14 @@ class StatsActorSpec
         expectMsg(s"name.space.$msg")
 
         shutdown()
+      }
+      "sending the same message over and over again does not alter the message" in new Environment {
+        val stats = system.actorOf(StatsActor.props(address, "name.space"), "stats-ns-repeat")
+        val msg = Increment("kittens")
+        stats ! msg
+        expectMsg(s"name.space.$msg")
+        stats ! msg
+        expectMsg(s"name.space.$msg")
       }
     }
     "initialized with a null address" should {

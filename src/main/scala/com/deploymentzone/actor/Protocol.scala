@@ -1,29 +1,18 @@
-package com.deploymentzone.actor.protocol
+package com.deploymentzone.actor
 
-import com.deploymentzone.actor.util.StatsDBucketValidator
+import com.deploymentzone.actor.validation.StatsDBucketValidator
 
-abstract class CounterMessage[+T](private[this] var _bucket: String)(val value: T, val samplingRate: Double = 1.0) {
+abstract class CounterMessage[+T](private[this] val bucket: String)(val value: T, val samplingRate: Double = 1.0) {
   val symbol: String
 
-  require(_bucket != null)
-  require(StatsDBucketValidator(_bucket),
+  require(bucket != null)
+  require(StatsDBucketValidator(bucket),
     s"""reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in buckets and buckets may not start or end with a period (".")""")
 
-  private[actor] def bucket = _bucket
-
-  //TODO I'm torn on making namespace immutable and have this method return a new instance of CounterMessage
-  private[actor] def namespace(namespace: String) = {
-    _bucket = namespace match {
-      case null => _bucket
-      case "" => _bucket
-      case _ => s"$namespace.${_bucket}"
-    }
-    this
-  }
   override def toString =
     samplingRate match {
-      case 1.0  => s"${_bucket}:$value|$symbol"
-      case _    => s"${_bucket}:$value|$symbol|@$samplingRate"
+      case 1.0  => s"$bucket:$value|$symbol"
+      case _    => s"$bucket:$value|$symbol|@$samplingRate"
     }
 }
 
@@ -34,7 +23,8 @@ class Count(bucket: String)(value: Int, samplingRate: Double = 1.0)
 }
 
 object Count {
-  def apply(bucket: String)(value: Int, samplingRate: Double = 1.0) = new Count(bucket)(value, samplingRate)
+  def apply(bucket: String)(value: Int, samplingRate: Double = 1.0) =
+    new Count(bucket)(value, samplingRate)
 }
 
 class Increment(bucket: String) extends Count(bucket)(1)
@@ -56,7 +46,8 @@ class Gauge(bucket: String)(value: Long, samplingRate: Double = 1.0)
 }
 
 object Gauge {
-  def apply(bucket: String)(value: Long, samplingRate: Double = 1.0) = new Gauge(bucket)(value, samplingRate)
+  def apply(bucket: String)(value: Long, samplingRate: Double = 1.0) =
+    new Gauge(bucket)(value, samplingRate)
 }
 
 class Timing(bucket: String)(value: Long, samplingRate: Double = 1.0)
@@ -68,5 +59,6 @@ class Timing(bucket: String)(value: Long, samplingRate: Double = 1.0)
 object Timing {
   import scala.concurrent.duration.Duration
 
-  def apply(bucket: String)(value: Duration, samplingRate: Double = 1.0) = new Timing(bucket)(value.toMillis, samplingRate)
+  def apply(bucket: String)(value: Duration, samplingRate: Double = 1.0) =
+    new Timing(bucket)(value.toMillis, samplingRate)
 }

@@ -1,7 +1,6 @@
 package com.deploymentzone.actor.unit
 
 import com.deploymentzone.actor._
-import com.deploymentzone.actor.protocol.CounterMessage
 import org.scalatest.FunSuiteLike
 import akka.testkit.ImplicitSender
 import akka.actor.{Props, ActorRef, Actor}

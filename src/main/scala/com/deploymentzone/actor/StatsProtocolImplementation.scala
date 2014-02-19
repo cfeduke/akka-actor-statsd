@@ -1,7 +1,6 @@
 package com.deploymentzone.actor
 
 import akka.actor.{ActorLogging, Stash, Actor, ActorRef}
-import com.deploymentzone.actor.protocol.CounterMessage
 import akka.io.UdpConnected
 
 private[actor] trait StatsProtocolImplementation

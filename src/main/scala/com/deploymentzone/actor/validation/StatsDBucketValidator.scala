@@ -1,4 +1,4 @@
-package com.deploymentzone.actor.util
+package com.deploymentzone.actor.validation
 
 /**
  * Validates that a provided name won't cause downstream problems with statsd; that is no reserved characters are
@@ -9,7 +9,7 @@ package com.deploymentzone.actor.util
  *
  * The reserved characters are colon (":"), pipe ("|"), at-symbol ("@") and backslash ("\").
  */
-object StatsDBucketValidator {
+private[actor] object StatsDBucketValidator {
   val RESERVED_CHARACTERS = Seq(":", "|", "@", "\\").mkString("\"", "\", \"", "\"")
   private val RESERVED_CHARACTERS_PATTERN = """[:|@\\]"""
   private val reserved = RESERVED_CHARACTERS_PATTERN.r
