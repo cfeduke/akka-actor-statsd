@@ -12,7 +12,7 @@ private[actor] trait StatsProtocolImplementation
 
   protected def process(msg: CounterMessage[_]): String
 
-  connection ! UdpConnected.Connect
+  override def preStart(): Unit = connection ! UdpConnected.Connect
 
   override def receive = connectionPending
 

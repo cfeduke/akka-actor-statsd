@@ -5,10 +5,16 @@ import com.deploymentzone.actor.util.StatsDBucketValidator
 import java.net.InetSocketAddress
 import com.deploymentzone.actor.protocol.CounterMessage
 
+/**
+ * An actor which sends counters to a StatsD instance via connected UDP.
+ * @param address hostname and port (UDP) of the StatsD instance
+ * @param namespace optional namespace to prefix all counter messages with
+ */
 class StatsActor(val address: InetSocketAddress, val namespace: String = "")
   extends Actor
   with StatsProtocolImplementation {
 
+  require(address != null)
   require(StatsDBucketValidator(namespace),
     s"""reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in namespaces and namespaces may not start or end with a period (".")""")
 
