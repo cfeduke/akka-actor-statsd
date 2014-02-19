@@ -1,23 +1,26 @@
 package com.deploymentzone.actor
 
-import akka.actor.{ActorRef, Props, ActorLogging, Actor}
+import akka.actor._
 import com.deploymentzone.actor.util.StatsDBucketValidator
+import java.net.InetSocketAddress
+import com.deploymentzone.actor.protocol.CounterMessage
 
-
-
-class StatsActor(val namespace: String = "")
+class StatsActor(val address: InetSocketAddress, val namespace: String = "")
   extends Actor
-  with ActorLogging {
+  with StatsProtocolImplementation {
 
   require(StatsDBucketValidator(namespace),
     s"""reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in namespaces and namespaces may not start or end with a period (".")""")
 
-  def receive = {
-    case _ =>
-  }
+  lazy val _connection: ActorRef = context.actorOf(UdpConnectedActor.props(address, self), "udp")
+
+  override def connection = _connection
+
+  override def process(msg: CounterMessage[_]) = msg.toString
 
 }
 
 object StatsActor {
-  def props(namespace: String) = Props(new StatsActor(namespace))
+  def props(address: InetSocketAddress, namespace: String) = Props(new StatsActor(address, namespace))
+  def props(address: InetSocketAddress) = Props(new StatsActor(address))
 }

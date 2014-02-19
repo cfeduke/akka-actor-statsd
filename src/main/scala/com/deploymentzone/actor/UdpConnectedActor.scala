@@ -1,7 +1,7 @@
 package com.deploymentzone.actor
 
 import java.net.InetSocketAddress
-import akka.actor.{ActorLogging, Props, ActorRef, Actor}
+import akka.actor._
 import akka.io.{UdpConnected, IO}
 import akka.util.ByteString
 
@@ -11,14 +11,15 @@ import akka.util.ByteString
 private[actor] class UdpConnectedActor(remote: InetSocketAddress, requester: ActorRef)
   extends Actor
   with ActorLogging {
+
   import context.system
 
   def receive = {
     case UdpConnected.Connect =>
       IO(UdpConnected) ! UdpConnected.Connect(self, remote)
-    case UdpConnected.Connected =>
+    case connected @ UdpConnected.Connected =>
       context.become(ready(sender))
-      requester ! UdpConnected.Connected
+      requester ! connected
   }
 
   def ready(connection: ActorRef): Receive = {
@@ -26,6 +27,10 @@ private[actor] class UdpConnectedActor(remote: InetSocketAddress, requester: Act
       connection ! UdpConnected.Send(ByteString(msg))
     case d @ UdpConnected.Disconnect => connection ! d
     case UdpConnected.Disconnected   => context.stop(self)
+  }
+
+  override def unhandled(message: Any) = {
+    log.warning(s"Unhandled message: $message (${message.getClass})")
   }
 }
 
