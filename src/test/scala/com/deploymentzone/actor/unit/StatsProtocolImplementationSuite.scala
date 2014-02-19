@@ -25,7 +25,7 @@ class StatsProtocolImplementationSuite
     val stats = system.actorOf(NoOpStatsActor.props(testActor))
     expectMsg(UdpConnected.Connect)
     val firstMsg = Decrement("turtles")
-    val secondMsg = Gauge("ninjas")(4000L, 5.0)
+    val secondMsg = Gauge("ninjas", 5.0)(4000L)
     val thirdMsg = Timing("eric.likes.haskell")(9.seconds)
     stats ! firstMsg
     stats ! secondMsg

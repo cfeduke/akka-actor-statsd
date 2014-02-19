@@ -48,7 +48,7 @@ class NamespaceTransformerSpec
   }
 
   private class NamespaceTest {
-    val counter = new CounterMessage("bucket")(1) { override val symbol = "&" }
+    val counter = new CounterMessage("bucket", 1.0)(1) { override val symbol = "&" }
   }
 
 }

@@ -2,7 +2,7 @@ package com.deploymentzone.actor
 
 import com.deploymentzone.actor.validation.StatsDBucketValidator
 
-abstract class CounterMessage[+T](private[this] val bucket: String)(val value: T, val samplingRate: Double = 1.0) {
+abstract class CounterMessage[+T](val bucket: String, val samplingRate: Double)(val value: T) {
   val symbol: String
 
   require(bucket != null)
@@ -16,15 +16,15 @@ abstract class CounterMessage[+T](private[this] val bucket: String)(val value: T
     }
 }
 
-class Count(bucket: String)(value: Int, samplingRate: Double = 1.0)
-  extends CounterMessage[Int](bucket)(value, samplingRate) {
+class Count(bucket: String, samplingRate: Double = 1.0)(value: Int)
+  extends CounterMessage[Int](bucket, samplingRate)(value) {
 
   override val symbol = "c"
 }
 
 object Count {
-  def apply(bucket: String)(value: Int, samplingRate: Double = 1.0) =
-    new Count(bucket)(value, samplingRate)
+  def apply(bucket: String, samplingRate: Double = 1.0)(value: Int) =
+    new Count(bucket, samplingRate)(value)
 }
 
 class Increment(bucket: String) extends Count(bucket)(1)
@@ -39,19 +39,19 @@ object Decrement {
   def apply(bucket: String) = new Decrement(bucket)
 }
 
-class Gauge(bucket: String)(value: Long, samplingRate: Double = 1.0)
-  extends CounterMessage[Long](bucket)(value, samplingRate) {
+class Gauge(bucket: String, samplingRate: Double)(value: Long)
+  extends CounterMessage[Long](bucket, samplingRate = 1.0)(value) {
 
   override val symbol = "g"
 }
 
 object Gauge {
-  def apply(bucket: String)(value: Long, samplingRate: Double = 1.0) =
-    new Gauge(bucket)(value, samplingRate)
+  def apply(bucket: String, samplingRate: Double = 1.0)(value: Long) =
+    new Gauge(bucket, samplingRate)(value)
 }
 
-class Timing(bucket: String)(value: Long, samplingRate: Double = 1.0)
-  extends CounterMessage(bucket)(value, samplingRate) {
+class Timing(bucket: String, samplingRate: Double = 1.0)(value: Long)
+  extends CounterMessage(bucket, samplingRate = 1.0)(value) {
 
   override val symbol = "ms"
 }
@@ -59,6 +59,6 @@ class Timing(bucket: String)(value: Long, samplingRate: Double = 1.0)
 object Timing {
   import scala.concurrent.duration.Duration
 
-  def apply(bucket: String)(value: Duration, samplingRate: Double = 1.0) =
-    new Timing(bucket)(value.toMillis, samplingRate)
+  def apply(bucket: String, samplingRate: Double = 1.0)(value: Duration) =
+    new Timing(bucket, samplingRate)(value.toMillis)
 }
