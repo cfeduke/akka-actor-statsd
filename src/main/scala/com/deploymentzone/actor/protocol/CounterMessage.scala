@@ -11,6 +11,7 @@ abstract class CounterMessage[+T](private[this] var _bucket: String)(val value: 
 
   private[actor] def bucket = _bucket
 
+  //TODO I'm torn on making namespace immutable and have this method return a new instance of CounterMessage
   private[actor] def namespace(namespace: String) = {
     _bucket = namespace match {
       case null => _bucket
