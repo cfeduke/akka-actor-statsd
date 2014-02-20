@@ -2,9 +2,11 @@ package com.deploymentzone.actor.unit.domain
 
 import org.scalatest.FunSpec
 import com.deploymentzone.actor.domain.MultiMetricQueue
+import com.deploymentzone.actor.ImplicitActorSystem
 
 class MultiMetricQueueFunSpec
-  extends FunSpec {
+  extends FunSpec
+  with ImplicitActorSystem {
 
   describe("A MultiMetricQueue") {
     describe("when empty") {
@@ -47,19 +49,27 @@ class MultiMetricQueueFunSpec
 
     describe("when a single message goes over the packetSize boundary") {
       it("drops the message") {
-        pending
+        val subject = MultiMetricQueue(4).enqueue("12345")
+        assert(subject.payload() == "")
+        assert(subject.size == 0)
       }
     }
 
     describe("when the first message goes over the packetSize boundary") {
       it("drops the oversized message but continues with other messages") {
-        pending
+        val subject = MultiMetricQueue(4).enqueue("12345").enqueue("1").enqueue("2")
+        assert(subject.payload() ==
+          """1
+            |2""".stripMargin)
       }
     }
 
     describe("when any message goes over the packetSize boundary") {
       it("drops the oversized message but continues with other messages") {
-        pending
+        val subject = MultiMetricQueue(4).enqueue("1").enqueue("12345").enqueue("2")
+        assert(subject.payload() ==
+          """1
+            |2""".stripMargin)
       }
     }
   }

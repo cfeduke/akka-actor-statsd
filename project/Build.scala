@@ -19,14 +19,15 @@ object Build extends sbt.Build {
   object Dependencies {
 
     object Versions {
-      val akka = "2.2.3"
-      val scalatest = "2.0"
-      val grizzledSlf4j = "1.0.1"
+      val akka              = "2.2.3"
+      val scalatest         = "2.0"
+      val logback           = "1.0.13"
     }
 
     val compileDependencies = Seq(
-      "com.typesafe.akka"   %%      "akka-actor"  % Versions.akka,
-      "org.clapper"         %% "grizzled-slf4j"   % Versions.grizzledSlf4j
+      "com.typesafe.akka"   %%  "akka-actor"      % Versions.akka,
+      "com.typesafe.akka"   %%  "akka-slf4j"      % Versions.akka,
+      "ch.qos.logback"      %   "logback-classic" % Versions.logback
     )
 
     val testDependencies = Seq(
