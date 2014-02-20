@@ -1,20 +1,20 @@
-package com.deploymentzone.actor.unit.protocol
+package com.deploymentzone.actor.unit
 
 import org.scalatest.{Matchers, WordSpec}
 import scala.concurrent.duration._
 import com.deploymentzone.actor._
 
-class CounterMessageSpec
+class MetricSpec
   extends WordSpec
   with Matchers {
 
   "A CounterMessage implementation" when {
     "creating a new instance" should {
       "not permit null buckets" in {
-        an [IllegalArgumentException] should be thrownBy new CounterMessage(null, 1.0)(1) { override val symbol = "y" }
+        an [IllegalArgumentException] should be thrownBy new Metric(null, 1.0)(1) { override val symbol = "y" }
       }
       "not permit buckets with reserved character names" in {
-        an [IllegalArgumentException] should be thrownBy new CounterMessage("a:name", 1.0)(1) { override val symbol = "z" }
+        an [IllegalArgumentException] should be thrownBy new Metric("a:name", 1.0)(1) { override val symbol = "z" }
       }
     }
     "invoking toString" when {
@@ -63,6 +63,32 @@ class CounterMessageSpec
     }
   }
 
+  "GaugeAdd" when {
+    "invoking toString" should {
+      "return the expected value" in {
+        GaugeAdd("m.n")(34).toString should be ("m.n:+34|g")
+      }
+    }
+    "invoking toString on a negative number" should {
+      "replace the negation sign with a positive sign" in {
+        GaugeAdd("n.o")(-96).toString should be ("n.o:+96|g")
+      }
+    }
+  }
+
+  "GaugeSubtract" when {
+    "invoking toString" should {
+      "return the expected value" in {
+        GaugeSubtract("m.n")(34).toString should be ("m.n:-34|g")
+      }
+    }
+    "invoking toString on a negative number" should {
+      "not have two negative signs" in {
+        GaugeSubtract("n.o")(-96).toString should be ("n.o:-96|g")
+      }
+    }
+  }
+
   "Timing" when {
     "invoking toString" when {
       "using a Long to represent milliseconds" should {
@@ -80,7 +106,7 @@ class CounterMessageSpec
   }
 
   private class Implementation[T](value: T, samplingRate: Double = 1.0) {
-    val subject = new CounterMessage("deploymentzone.sprockets", samplingRate)(value) { override val symbol = "x" }
+    val subject = new Metric("deploymentzone.sprockets", samplingRate)(value) { override val symbol = "x" }
   }
 
 

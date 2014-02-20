@@ -41,7 +41,7 @@ class StatsProtocolImplementationSuite
     extends Actor
     with StatsProtocolImplementation {
 
-    override protected def process(msg: CounterMessage[_]) = msg.toString
+    override protected def process(msg: Metric[_]) = msg.toString
 
   }
 

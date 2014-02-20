@@ -9,7 +9,7 @@ private[actor] trait StatsProtocolImplementation
 
   def connection: ActorRef
 
-  protected def process(msg: CounterMessage[_]): String
+  protected def process(msg: Metric[_]): String
 
   override def preStart(): Unit = connection ! UdpConnected.Connect
 
@@ -24,7 +24,7 @@ private[actor] trait StatsProtocolImplementation
   }
   
   protected def connected: Actor.Receive = {
-    case msg: CounterMessage[_] =>
+    case msg: Metric[_] =>
       connection ! process(msg)
   }
 }

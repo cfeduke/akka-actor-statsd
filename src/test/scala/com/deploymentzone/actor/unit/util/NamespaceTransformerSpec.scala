@@ -1,7 +1,7 @@
 package com.deploymentzone.actor.unit.util
 
 import org.scalatest.{Matchers, WordSpec}
-import com.deploymentzone.actor.{util, CounterMessage}
+import com.deploymentzone.actor.{util, Metric}
 import java.lang.IllegalArgumentException
 import com.deploymentzone.actor.util.NamespaceTransformer
 
@@ -48,7 +48,7 @@ class NamespaceTransformerSpec
   }
 
   private class NamespaceTest {
-    val counter = new CounterMessage("bucket", 1.0)(1) { override val symbol = "&" }
+    val counter = new Metric("bucket", 1.0)(1) { override val symbol = "&" }
   }
 
 }
