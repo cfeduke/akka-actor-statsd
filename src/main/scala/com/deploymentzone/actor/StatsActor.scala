@@ -3,7 +3,7 @@ package com.deploymentzone.actor
 import akka.actor._
 import com.deploymentzone.actor.validation.StatsDBucketValidator
 import java.net.InetSocketAddress
-import com.deploymentzone.actor.util.NamespaceTransformer
+import com.deploymentzone.actor.domain.NamespaceTransformer
 
 /**
  * An actor which sends counters to a StatsD instance via connected UDP.

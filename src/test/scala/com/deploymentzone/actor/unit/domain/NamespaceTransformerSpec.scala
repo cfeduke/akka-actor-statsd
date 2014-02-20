@@ -1,9 +1,9 @@
-package com.deploymentzone.actor.unit.util
+package com.deploymentzone.actor.unit.domain
 
 import org.scalatest.{Matchers, WordSpec}
-import com.deploymentzone.actor.{util, Metric}
+import com.deploymentzone.actor.Metric
 import java.lang.IllegalArgumentException
-import com.deploymentzone.actor.util.NamespaceTransformer
+import com.deploymentzone.actor.domain.NamespaceTransformer
 
 class NamespaceTransformerSpec
   extends WordSpec

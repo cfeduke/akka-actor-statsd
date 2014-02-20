@@ -1,4 +1,4 @@
-package com.deploymentzone.actor.util
+package com.deploymentzone.actor.domain
 
 import com.deploymentzone.actor.Metric
 import com.deploymentzone.actor.validation.StatsDBucketValidator
