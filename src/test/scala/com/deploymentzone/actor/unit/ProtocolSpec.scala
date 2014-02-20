@@ -4,11 +4,11 @@ import org.scalatest.{Matchers, WordSpec}
 import scala.concurrent.duration._
 import com.deploymentzone.actor._
 
-class MetricSpec
+class ProtocolSpec
   extends WordSpec
   with Matchers {
 
-  "A CounterMessage implementation" when {
+  "A Metric implementation" when {
     "creating a new instance" should {
       "not permit null buckets" in {
         an [IllegalArgumentException] should be thrownBy new Metric(null, 1.0)(1) { override val symbol = "y" }
