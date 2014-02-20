@@ -3,8 +3,16 @@ package com.deploymentzone.actor.domain
 import scala.collection.immutable.Queue
 import com.deploymentzone.actor.PacketSize
 import scala.annotation.tailrec
+import java.nio.charset.Charset
 
-class MultiMetricQueue(val packetSize: Int) {
+/**
+ * Logic for combining messages so they won't cross a predetermined packet size boundary.
+ *
+ * This class is not thread-safe.
+ *
+ * @param packetSize maximum byte size that is permitted for any given payload
+ */
+private[actor] class MultiMetricQueue(val packetSize: Int) {
   var queue = Queue[String]()
 
   def enqueue(elem: String) = {
@@ -14,21 +22,21 @@ class MultiMetricQueue(val packetSize: Int) {
 
   def payload(): String = {
     @tailrec
-    def recurse(acc: StringBuilder = new StringBuilder): String = {
+    def recurse(acc: StringBuilder = new StringBuilder, utf8Length: Int = 0): String = {
+      val utf8 = Charset.forName("utf-8")
       queue.isEmpty match {
         case true => acc.toString()
         case false =>
-          if (queue.head.length + acc.length + 1 >= packetSize)
+          val proposedAddition = queue.head.getBytes(utf8).length
+          if (proposedAddition + utf8Length + 1 > (packetSize + 1))
             acc.toString()
           else {
             val (item, sq) = queue.dequeue
             queue = sq
             acc.append(item)
             acc.append("\n")
-            recurse(acc)
+            recurse(acc, proposedAddition + utf8Length)
           }
-
-
       }
     }
     recurse().stripLineEnd
