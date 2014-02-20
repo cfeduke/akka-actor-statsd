@@ -31,6 +31,8 @@ class StatsActor(val address: InetSocketAddress, val namespace: String)
 object StatsActor {
   private val DEFAULT_STATSD_UDP_PORT = 8125
 
+  // TODO create an empty props that gets its values from config
+
   def props(address: InetSocketAddress, namespace: String) = Props(new StatsActor(address, namespace))
   def props(address: InetSocketAddress) = Props(new StatsActor(address, ""))
   def props(hostname: String, port: Int, namespace: String = "") =

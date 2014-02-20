@@ -38,10 +38,22 @@ class ScheduledDispatcherActorSpec
         ex.getCause.getMessage should be ("requirement failed: " + ScheduledDispatcherActor.TRANSMIT_INTERVAL_NEGATIVE_ZERO_MESSAGE)
       }
     }
+
+    "given several messages below the transmitInterval" should {
+      "combine all the messages" in {
+        val scheduled = system.actorOf(ScheduledDispatcherActor.props(250.milliseconds, testActor))
+        Seq("one", "two", "three", "four").foreach(msg => scheduled ! msg)
+        expectMsg(300.milliseconds,
+          """one
+            |two
+            |three
+            |four""".stripMargin)
+      }
+    }
   }
 
   private class ExceptionCaptureEnvironment(packetSize: Int, transmitInterval: Long) {
-    val props = ScheduledDispatcherActor.props(packetSize, transmitInterval)
+    val props = ScheduledDispatcherActor.props(packetSize, transmitInterval, system.deadLetters)
     val failureParent = system.actorOf(Props(new Actor with ActorLogging {
       var child: ActorRef = context.actorOf(props)
 
@@ -55,6 +67,7 @@ class ScheduledDispatcherActorSpec
       }
     }))
   }
+
   private class Environment {
 
   }

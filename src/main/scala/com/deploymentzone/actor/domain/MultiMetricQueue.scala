@@ -22,7 +22,7 @@ import akka.actor.ActorSystem
 private[actor] class MultiMetricQueue(val packetSize: Int)(implicit system: ActorSystem) {
   val logger = Logging(system.eventStream, classOf[MultiMetricQueue])
 
-  var queue = immutable.Queue[String]()
+  private var queue = immutable.Queue[String]()
 
   /**
    * Enqueues a message for future dispatch.
@@ -78,6 +78,7 @@ private[actor] class MultiMetricQueue(val packetSize: Int)(implicit system: Acto
       }
     }
 
+    // TODO return Some or None instead of ""
     recurse().stripLineEnd
   }
 
