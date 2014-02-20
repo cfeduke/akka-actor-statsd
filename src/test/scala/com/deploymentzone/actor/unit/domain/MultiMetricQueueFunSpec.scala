@@ -56,5 +56,11 @@ class MultiMetricQueueFunSpec
         pending
       }
     }
+
+    describe("when any message goes over the packetSize boundary") {
+      it("drops the oversized message but continues with other messages") {
+        pending
+      }
+    }
   }
 }
