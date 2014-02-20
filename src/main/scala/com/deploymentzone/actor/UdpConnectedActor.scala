@@ -38,11 +38,6 @@ private[actor] class UdpConnectedActor(remote: InetSocketAddress, requester: Act
     log.warning(s"Unhandled message: $message (${message.getClass})")
   }
 
-  private case class Retry(message: String, attempts: Int) {
-    private val MAXIMUM_RETRIES = 2
-
-    def shouldRetry: Boolean = attempts <= MAXIMUM_RETRIES
-  }
 }
 
 private[actor] object UdpConnectedActor {
