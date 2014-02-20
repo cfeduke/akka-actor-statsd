@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 import akka.actor.Terminated
 
 class StatsActorSpec
-  extends TestKit("stats-actor-suite")
+  extends TestKit("stats-actor-spec")
   with WordSpecLike
   with Matchers
   with ImplicitSender {

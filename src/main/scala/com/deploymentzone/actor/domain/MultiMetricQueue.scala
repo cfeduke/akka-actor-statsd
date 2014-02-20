@@ -56,7 +56,7 @@ private[actor] class MultiMetricQueue(val packetSize: Int)(implicit system: Acto
     @tailrec
     def recurse(acc: StringBuilder = new StringBuilder, utf8Length: Int = 0): String = {
       val UTF8 = Charset.forName("utf-8")
-      
+
       queue.isEmpty match {
         case true => acc.toString()
         case false =>
