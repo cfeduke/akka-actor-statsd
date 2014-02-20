@@ -4,7 +4,7 @@ import com.deploymentzone.actor.validation.StatsDBucketValidator
 
 abstract class Metric[+T](val bucket: String, val samplingRate: Double)(val value: T) {
   val symbol: String
-  val renderValue: String = value.toString
+  protected[this] val renderValue: String = value.toString
 
   require(bucket != null)
   require(StatsDBucketValidator(bucket),
@@ -20,10 +20,12 @@ abstract class Metric[+T](val bucket: String, val samplingRate: Double)(val valu
 class Count(bucket: String, samplingRate: Double = 1.0)(value: Int)
   extends Metric[Int](bucket, samplingRate)(value) {
 
-  override val symbol = "c"
+  override val symbol = Count.SYMBOL
 }
 
 object Count {
+  val SYMBOL = "c"
+
   def apply(bucket: String, samplingRate: Double = 1.0)(value: Int) =
     new Count(bucket, samplingRate)(value)
 }
@@ -75,13 +77,28 @@ object GaugeSubtract {
 }
 
 class Timing(bucket: String, samplingRate: Double = 1.0)(value: Long)
-  extends Metric(bucket, samplingRate = 1.0)(value) {
+  extends Metric(bucket, samplingRate)(value) {
 
-  override val symbol = "ms"
+  override val symbol = Timing.SYMBOL
+}
+
+class Set(bucket: String, samplingRate: Double = 1.0)(value: Long)
+  extends Metric(bucket, samplingRate)(value) {
+
+  override val symbol = Set.SYMBOL
+}
+
+object Set {
+  val SYMBOL = "s"
+
+  def apply(bucket: String, samplingRate: Double = 1.0)(value: Long) =
+    new Set(bucket, samplingRate)(value)
 }
 
 object Timing {
   import scala.concurrent.duration.Duration
+
+  val SYMBOL = "ms"
 
   def apply(bucket: String, samplingRate: Double = 1.0)(value: Duration) =
     new Timing(bucket, samplingRate)(value.toMillis)

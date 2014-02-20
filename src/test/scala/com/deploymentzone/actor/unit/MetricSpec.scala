@@ -105,6 +105,14 @@ class MetricSpec
     }
   }
 
+  "Set" when {
+    "invoking toString" should {
+      "return the expected value" in {
+        Set("n.q")(12).toString should be ("n.q:12|s")
+      }
+    }
+  }
+
   private class Implementation[T](value: T, samplingRate: Double = 1.0) {
     val subject = new Metric("deploymentzone.sprockets", samplingRate)(value) { override val symbol = "x" }
   }
