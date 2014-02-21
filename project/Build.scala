@@ -9,7 +9,7 @@ object Build extends sbt.Build {
     settings = Project.defaultSettings ++ Seq(
       name                  := "akka-actor-statsd",
       organization          := "com.deploymentzone",
-      version               := "0.1-SNAPSHOT",
+      version               := "0.2-SNAPSHOT",
       scalaVersion          := "2.10.3",
       scalacOptions         := Seq("-deprecation", "-feature", "-encoding", "utf8"),
       libraryDependencies   ++= Dependencies()
