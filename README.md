@@ -10,11 +10,13 @@ TODO examples
 
 ## Installation
 
-TODO deploy on [OSS Sonatype] repository.
+Snapshots are hosted on the Sonatype OSS repository:
 
 ```scala
 /* sbt */
-libraryDependencies += "com.deploymentzone" %% "akka-actor-statsd" % "0.1-SNAPSHOT"
+resolvers ++= Seq("Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots")
+
+libraryDependencies ++= Seq("com.deploymentzone" %% "akka-actor-statsd" % "0.1-SNAPSHOT")
 ```
 
 ## Explanation
