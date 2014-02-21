@@ -7,17 +7,20 @@ private[actor] trait StatsProtocolImplementation
   extends Stash
   with ActorLogging { this: Actor =>
 
-  def connection: ActorRef
+  protected def connection: ActorRef
+  private var scheduledDispatcher: ActorRef = _
 
   protected def process(msg: Metric[_]): String
 
-  override def preStart(): Unit = connection ! UdpConnected.Connect
+  override def preStart() {
+    connection ! UdpConnected.Connect
+    scheduledDispatcher = context.actorOf(ScheduledDispatcherActor.props(connection), "scheduled")
+  }
 
   override def receive = connectionPending
 
   protected def connectionPending: Actor.Receive = {
     case UdpConnected.Connected =>
-      log.debug(s"sender: $sender")
       unstashAll()
       context.become(connected)
     case _ => stash()
@@ -25,6 +28,6 @@ private[actor] trait StatsProtocolImplementation
   
   protected def connected: Actor.Receive = {
     case msg: Metric[_] =>
-      connection ! process(msg)
+      scheduledDispatcher ! process(msg)
   }
 }

@@ -65,14 +65,13 @@ class StatsActorSpec
     }
     "sending multiple messages quickly in sequence" should {
       "transmit all the messages" in new Environment {
-        pending
         val stats = system.actorOf(StatsActor.props(address, null), "stats-mmsg")
         val msgs = Seq(Timing("xyz")(40.seconds),
                      Increment("ninjas"),
                      Decrement("pirates"),
                      Gauge("ratchet")(0xDEADBEEF))
         msgs.foreach(stats ! _)
-        msgs.foreach(m => expectMsg(m.toString))
+        expectMsg(msgs.mkString("\n").stripLineEnd)
 
         shutdown()
       }

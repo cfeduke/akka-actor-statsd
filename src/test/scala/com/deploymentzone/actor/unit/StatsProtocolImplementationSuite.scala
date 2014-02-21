@@ -24,17 +24,12 @@ class StatsProtocolImplementationSuite
   test("stashes messages until connection is established") {
     val stats = system.actorOf(NoOpStatsActor.props(testActor))
     expectMsg(UdpConnected.Connect)
-    val firstMsg = Decrement("turtles")
-    val secondMsg = Gauge("ninjas", 5.0)(4000L)
-    val thirdMsg = Timing("eric.likes.haskell")(9.seconds)
-    stats ! firstMsg
-    stats ! secondMsg
-    stats ! thirdMsg
+    val msgs = Seq(Decrement("turtles"),
+                   Gauge("ninjas", 5.0)(4000L),
+                   Timing("eric.likes.haskell")(9.seconds))
+    msgs.foreach(msg => stats ! msg)
     stats ! UdpConnected.Connected
-    expectMsg(firstMsg.toString)
-    expectMsg(secondMsg.toString)
-    expectMsg(thirdMsg.toString)
-
+    expectMsg(msgs.mkString("\n").stripLineEnd)
   }
 
   private class NoOpStatsActor(val connection : ActorRef)
