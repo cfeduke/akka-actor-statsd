@@ -2,7 +2,11 @@
 
 A dead simple [statsd] client written in Scala as an actor using the [akka] framework.
 
+Currently in pre-release stage; its running, just not yet in production.
+
 ## Examples
+
+TODO examples
 
 ## Installation
 
