@@ -1,6 +1,6 @@
-package com.deploymentzone.actor
+package deploymentzone.actor
 
-import com.deploymentzone.actor.validation.StatsDBucketValidator
+import deploymentzone.actor.validation.StatsDBucketValidator
 
 abstract class Metric[+T](val bucket: String, val samplingRate: Double)(val value: T) {
   val symbol: String

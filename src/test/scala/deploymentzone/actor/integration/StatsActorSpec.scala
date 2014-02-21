@@ -1,6 +1,6 @@
-package com.deploymentzone.actor.integration
+package deploymentzone.actor.integration
 
-import com.deploymentzone.actor._
+import deploymentzone.actor._
 import org.scalatest.{WordSpecLike, Matchers}
 import java.net.InetSocketAddress
 import akka.testkit.{TestProbe, ImplicitSender}

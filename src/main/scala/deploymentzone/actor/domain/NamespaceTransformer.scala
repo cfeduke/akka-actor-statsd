@@ -1,7 +1,7 @@
-package com.deploymentzone.actor.domain
+package deploymentzone.actor.domain
 
-import com.deploymentzone.actor.Metric
-import com.deploymentzone.actor.validation.StatsDBucketValidator
+import deploymentzone.actor.Metric
+import deploymentzone.actor.validation.StatsDBucketValidator
 
 /**
  * Transforms the toString result value of a CounterMessage instance to include an

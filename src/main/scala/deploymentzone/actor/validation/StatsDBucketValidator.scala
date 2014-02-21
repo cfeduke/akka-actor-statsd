@@ -1,4 +1,4 @@
-package com.deploymentzone.actor.validation
+package deploymentzone.actor.validation
 
 /**
  * Validates that a provided name won't cause downstream problems with statsd; that is no reserved characters are

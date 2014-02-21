@@ -1,8 +1,8 @@
-package com.deploymentzone.actor.unit.domain
+package deploymentzone.actor.unit.domain
 
 import org.scalatest.FunSpec
-import com.deploymentzone.actor.domain.MultiMetricQueue
-import com.deploymentzone.actor.ImplicitActorSystem
+import deploymentzone.actor.domain.MultiMetricQueue
+import deploymentzone.actor.ImplicitActorSystem
 
 class MultiMetricQueueFunSpec
   extends FunSpec

@@ -1,6 +1,6 @@
-package com.deploymentzone.actor.integration
+package deploymentzone.actor.integration
 
-import com.deploymentzone.actor.{UdpListenerActor, TestKit, UdpConnectedActor}
+import deploymentzone.actor.{UdpListenerActor, TestKit, UdpConnectedActor}
 import org.scalatest.FunSuiteLike
 import akka.testkit.ImplicitSender
 import java.net.InetSocketAddress

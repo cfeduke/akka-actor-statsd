@@ -1,7 +1,7 @@
-package com.deploymentzone.actor.domain
+package deploymentzone.actor.domain
 
 import scala.collection.immutable
-import com.deploymentzone.actor.PacketSize
+import deploymentzone.actor.PacketSize
 import scala.annotation.tailrec
 import java.nio.charset.Charset
 import akka.event.Logging
