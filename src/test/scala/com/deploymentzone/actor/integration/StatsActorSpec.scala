@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 import akka.actor.Terminated
 
 class StatsActorSpec
-  extends TestKit("stats-actor-suite")
+  extends TestKit("stats-actor-spec")
   with WordSpecLike
   with Matchers
   with ImplicitSender {
@@ -59,6 +59,19 @@ class StatsActorSpec
         val msg = Timing("xyz")(40.seconds)
         stats ! msg
         expectMsg(msg.toString)
+
+        shutdown()
+      }
+    }
+    "sending multiple messages quickly in sequence" should {
+      "transmit all the messages" in new Environment {
+        val stats = system.actorOf(StatsActor.props(address, null), "stats-mmsg")
+        val msgs = Seq(Timing("xyz")(40.seconds),
+                     Increment("ninjas"),
+                     Decrement("pirates"),
+                     Gauge("ratchet")(0xDEADBEEF))
+        msgs.foreach(stats ! _)
+        expectMsg(msgs.mkString("\n").stripLineEnd)
 
         shutdown()
       }

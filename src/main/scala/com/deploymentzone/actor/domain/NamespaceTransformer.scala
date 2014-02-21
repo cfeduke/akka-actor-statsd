@@ -1,17 +1,17 @@
-package com.deploymentzone.actor.util
+package com.deploymentzone.actor.domain
 
-import com.deploymentzone.actor.CounterMessage
+import com.deploymentzone.actor.Metric
 import com.deploymentzone.actor.validation.StatsDBucketValidator
 
 /**
  * Transforms the toString result value of a CounterMessage instance to include an
  * optional namespace.
  */
-private[actor] class NamespaceTransformer(val namespace: String) extends ((CounterMessage[_]) => String) {
+private[actor] class NamespaceTransformer(val namespace: String) extends ((Metric[_]) => String) {
 
   require(StatsDBucketValidator(namespace))
 
-  override def apply(counter: CounterMessage[_]): String = {
+  override def apply(counter: Metric[_]): String = {
     require(counter != null)
 
     val intermediate = counter.toString

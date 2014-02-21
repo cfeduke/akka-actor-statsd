@@ -3,7 +3,7 @@ package com.deploymentzone.actor
 import akka.actor._
 import com.deploymentzone.actor.validation.StatsDBucketValidator
 import java.net.InetSocketAddress
-import com.deploymentzone.actor.util.NamespaceTransformer
+import com.deploymentzone.actor.domain.NamespaceTransformer
 
 /**
  * An actor which sends counters to a StatsD instance via connected UDP.
@@ -24,12 +24,14 @@ class StatsActor(val address: InetSocketAddress, val namespace: String)
 
   override def connection = _connection
 
-  override def process(msg: CounterMessage[_]) = namespaceTx(msg)
+  override def process(msg: Metric[_]) = namespaceTx(msg)
 
 }
 
 object StatsActor {
   private val DEFAULT_STATSD_UDP_PORT = 8125
+
+  // TODO create an empty props that gets its values from config
 
   def props(address: InetSocketAddress, namespace: String) = Props(new StatsActor(address, namespace))
   def props(address: InetSocketAddress) = Props(new StatsActor(address, ""))
