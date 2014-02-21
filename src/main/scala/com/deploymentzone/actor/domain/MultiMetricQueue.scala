@@ -41,9 +41,7 @@ private[actor] class MultiMetricQueue(val packetSize: Int)(implicit system: Acto
    *
    * @return number of messages remaining in the queue.
    */
-  def size: Int = {
-    queue.size
-  }
+  def size: Int = queue.size
   /**
    * Creates a StatsD payload message from a list of messages up to the [[packetSize]] limit
    * in bytes taking UTF-8 size into account.
@@ -52,7 +50,7 @@ private[actor] class MultiMetricQueue(val packetSize: Int)(implicit system: Acto
    *
    * @return Newline separated list of StatsD messages up to the maximum [[packetSize]]
    */
-  def payload(): String = {
+  def payload(): Option[String] = {
     @tailrec
     def recurse(acc: StringBuilder = new StringBuilder, utf8Length: Int = 0): String = {
       val UTF8 = Charset.forName("utf-8")
@@ -78,8 +76,10 @@ private[actor] class MultiMetricQueue(val packetSize: Int)(implicit system: Acto
       }
     }
 
-    // TODO return Some or None instead of ""
-    recurse().stripLineEnd
+    recurse().stripLineEnd match {
+      case result if result.length > 0 => Some(result)
+      case _ => None
+    }
   }
 
   private object DroppedMessageWarning extends ((Int, String) => Unit) {

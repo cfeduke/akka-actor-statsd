@@ -39,15 +39,29 @@ class ScheduledDispatcherActorSpec
       }
     }
 
-    "given several messages below the transmitInterval" should {
-      "combine all the messages" in {
-        val scheduled = system.actorOf(ScheduledDispatcherActor.props(250.milliseconds, testActor))
-        Seq("one", "two", "three", "four").foreach(msg => scheduled ! msg)
-        expectMsg(300.milliseconds,
-          """one
-            |two
-            |three
-            |four""".stripMargin)
+    "given several messages" when {
+      "all messages are queued before the transmitInterval" should {
+        "combine all the messages" in {
+          val scheduled = system.actorOf(ScheduledDispatcherActor.props(250.milliseconds, testActor))
+          Seq("one", "two", "three", "four").foreach(msg => scheduled ! msg)
+          expectMsg(300.milliseconds,
+            """one
+              |two
+              |three
+              |four""".stripMargin)
+        }
+      }
+      "some messages are staggered after the transmitInterval" should {
+        "receive one batch of messages and then another" in {
+          val scheduled = system.actorOf(ScheduledDispatcherActor.props(50.milliseconds, testActor))
+          implicit val executionContext = system.dispatcher
+          system.scheduler.scheduleOnce(100.milliseconds, scheduled, "three")
+          Seq("one", "two").foreach(msg => scheduled ! msg)
+          expectMsg(100.milliseconds,
+            """one
+              |two""".stripMargin)
+          expectMsg("three")
+        }
       }
     }
   }
@@ -68,7 +82,4 @@ class ScheduledDispatcherActorSpec
     }))
   }
 
-  private class Environment {
-
-  }
 }
