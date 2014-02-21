@@ -9,10 +9,33 @@ object Build extends sbt.Build {
     settings = Project.defaultSettings ++ Seq(
       name                  := "akka-actor-statsd",
       organization          := "com.deploymentzone",
-      version               := "0.2-SNAPSHOT",
+      version               := "0.1-SNAPSHOT",
+      licenses              := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
+      homepage              := Some(url("https://github.com/cfeduke/akka-actor-statsd/")),
       scalaVersion          := "2.10.3",
       scalacOptions         := Seq("-deprecation", "-feature", "-encoding", "utf8"),
-      libraryDependencies   ++= Dependencies()
+      libraryDependencies   ++= Dependencies(),
+      publishMavenStyle     := true,
+      publishTo := {
+        val nexus = "https://oss.sonatype.org/"
+        if (version.value.trim.endsWith("SNAPSHOT"))
+          Some("snapshots" at nexus + "content/repositories/snapshots")
+        else
+          Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+      },
+      pomIncludeRepository := { _ => false },
+      pomExtra :=
+          <scm>
+            <url>git@github.com:cfeduke/akka-actor-statsd.git</url>
+            <connection>scm:git:git@github.com:cfeduke/akka-actor-statsd.git</connection>
+          </scm>
+          <developers>
+            <developer>
+              <id>cfeduke</id>
+              <name>Charles Feduke</name>
+              <url>http://www.deploymentzone.com</url>
+            </developer>
+          </developers>
     )
   )
 
