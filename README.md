@@ -67,13 +67,16 @@ perf ! Timing("page2.response")(100.milliseconds)
 
 ## Installation
 
-Snapshots are hosted on the Sonatype OSS repository:
+Releases are hosted on Maven Central.
 
 ```scala
-/* sbt */
-resolvers ++= Seq("Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots")
+libraryDependencies ++= Seq("com.deploymentzone" %% "akka-actor-statsd" % "0.1")
+```
 
-libraryDependencies ++= Seq("com.deploymentzone" %% "akka-actor-statsd" % "0.1-SNAPSHOT")
+Snapshots are hosted on the Sonatype OSS repository.
+
+```scala
+resolvers ++= Seq("Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots")
 ```
 
 ## Explanation
