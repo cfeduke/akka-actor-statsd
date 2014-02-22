@@ -2,7 +2,7 @@
 
 A dead simple [statsd] client written in Scala as an actor using the [akka] framework.
 
-Currently at 0.1-SNAPSHOT release. We're using this software in a non-production setting 
+Currently at 0.1 release. We're using this software in a non-production setting 
 at [TrafficLand](http://www.trafficland.com).
 
 ## Examples
