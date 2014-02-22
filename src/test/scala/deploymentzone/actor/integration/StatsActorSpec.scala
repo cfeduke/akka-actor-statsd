@@ -76,6 +76,17 @@ class StatsActorSpec
         shutdown()
       }
     }
+    "multiple instances" should {
+      "all deliver their messages" in new Environment {
+        val stats1 = system.actorOf(StatsActor.props(address, null), "mi-stats1")
+        val stats2 = system.actorOf(StatsActor.props(address, null), "mi-stats2")
+        val msg1 = Increment("count")
+        val msg2 = Decrement("count")
+        stats1 ! msg1
+        stats2 ! msg2
+        expectMsgAllOf(msg1.toString, msg2.toString)
+      }
+    }
   }
 
   private class Environment {
