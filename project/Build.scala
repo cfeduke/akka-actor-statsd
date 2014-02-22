@@ -9,7 +9,7 @@ object Build extends sbt.Build {
     settings = Project.defaultSettings ++ Seq(
       name                  := "akka-actor-statsd",
       organization          := "com.deploymentzone",
-      version               := "0.1",
+      version               := "0.2-SNAPSHOT",
       licenses              := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
       homepage              := Some(url("https://github.com/cfeduke/akka-actor-statsd/")),
       scalaVersion          := "2.10.3",
