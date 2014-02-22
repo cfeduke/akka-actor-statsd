@@ -1,4 +1,4 @@
-package com.deploymentzone
+package deploymentzone
 
 package object actor {
 

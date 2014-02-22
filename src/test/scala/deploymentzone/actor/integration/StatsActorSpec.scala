@@ -1,6 +1,6 @@
-package com.deploymentzone.actor.integration
+package deploymentzone.actor.integration
 
-import com.deploymentzone.actor._
+import deploymentzone.actor._
 import org.scalatest.{WordSpecLike, Matchers}
 import java.net.InetSocketAddress
 import akka.testkit.{TestProbe, ImplicitSender}
@@ -74,6 +74,17 @@ class StatsActorSpec
         expectMsg(msgs.mkString("\n").stripLineEnd)
 
         shutdown()
+      }
+    }
+    "multiple instances" should {
+      "all deliver their messages" in new Environment {
+        val stats1 = system.actorOf(StatsActor.props(address, null), "mi-stats1")
+        val stats2 = system.actorOf(StatsActor.props(address, null), "mi-stats2")
+        val msg1 = Increment("count")
+        val msg2 = Decrement("count")
+        stats1 ! msg1
+        stats2 ! msg2
+        expectMsgAllOf(msg1.toString, msg2.toString)
       }
     }
   }

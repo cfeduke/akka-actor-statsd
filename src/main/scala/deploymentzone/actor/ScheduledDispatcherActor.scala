@@ -1,8 +1,8 @@
-package com.deploymentzone.actor
+package deploymentzone.actor
 
 import scala.concurrent.duration._
 import akka.actor.{ActorRef, ActorLogging, Props, Actor}
-import com.deploymentzone.actor.domain.MultiMetricQueue
+import deploymentzone.actor.domain.MultiMetricQueue
 import java.util.concurrent.TimeUnit
 
 private[actor] class ScheduledDispatcherActor(val packetSize: Int, val transmitInterval: Long, val receiver: ActorRef)

@@ -1,4 +1,4 @@
-package com.deploymentzone.actor
+package deploymentzone.actor
 
 import akka.actor.{ActorLogging, Props, Actor, ActorRef}
 import akka.io.{Udp, IO}

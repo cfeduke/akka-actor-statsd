@@ -1,4 +1,4 @@
-package com.deploymentzone.actor
+package deploymentzone.actor
 
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import akka.actor.ActorSystem

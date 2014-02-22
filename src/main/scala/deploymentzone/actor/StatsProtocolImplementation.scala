@@ -1,4 +1,4 @@
-package com.deploymentzone.actor
+package deploymentzone.actor
 
 import akka.actor.{ActorLogging, Stash, Actor, ActorRef}
 import akka.io.UdpConnected

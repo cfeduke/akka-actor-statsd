@@ -1,4 +1,4 @@
-package com.deploymentzone.actor
+package deploymentzone.actor
 
 import java.net.InetSocketAddress
 import akka.actor._

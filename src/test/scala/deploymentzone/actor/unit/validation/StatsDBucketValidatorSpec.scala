@@ -1,7 +1,7 @@
-package com.deploymentzone.actor.unit.validation
+package deploymentzone.actor.unit.validation
 
 import org.scalatest.{Matchers, WordSpec}
-import com.deploymentzone.actor.validation.StatsDBucketValidator
+import deploymentzone.actor.validation.StatsDBucketValidator
 
 class StatsDBucketValidatorSpec
   extends WordSpec

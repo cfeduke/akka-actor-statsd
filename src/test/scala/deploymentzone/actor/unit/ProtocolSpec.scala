@@ -1,8 +1,8 @@
-package com.deploymentzone.actor.unit
+package deploymentzone.actor.unit
 
 import org.scalatest.{Matchers, WordSpec}
 import scala.concurrent.duration._
-import com.deploymentzone.actor._
+import deploymentzone.actor._
 
 class ProtocolSpec
   extends WordSpec

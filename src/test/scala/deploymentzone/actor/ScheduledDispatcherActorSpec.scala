@@ -1,4 +1,4 @@
-package com.deploymentzone.actor
+package deploymentzone.actor
 
 import org.scalatest.{WordSpecLike, Matchers}
 import akka.testkit.ImplicitSender
