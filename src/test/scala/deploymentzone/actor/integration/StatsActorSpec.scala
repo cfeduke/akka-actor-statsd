@@ -9,15 +9,15 @@ import scala.concurrent.duration._
 import akka.actor.Terminated
 
 class StatsActorSpec
-  extends TestKit("stats-actor-spec")
+  extends TestKit("stats-actor-integration-spec")
   with WordSpecLike
   with Matchers
   with ImplicitSender {
 
   "StatsActor" when {
-    "initialized without a namespace" should {
+    "initialized with an empty namespace" should {
       "send the expected message" in new Environment {
-        val stats = system.actorOf(StatsActor.props(address), "stats")
+        val stats = system.actorOf(StatsActor.props(address, ""), "stats")
         val msg = Increment("dog")
         stats ! msg
         expectMsg(msg.toString)

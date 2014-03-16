@@ -68,18 +68,7 @@ class ScheduledDispatcherActorSpec
 
   private class ExceptionCaptureEnvironment(packetSize: Int, transmitInterval: Long) {
     val props = ScheduledDispatcherActor.props(packetSize, transmitInterval, system.deadLetters)
-    val failureParent = system.actorOf(Props(new Actor with ActorLogging {
-      var child: ActorRef = context.actorOf(props)
-
-      override val supervisorStrategy = OneForOneStrategy() {
-        case f =>
-          testActor ! f
-          Stop
-      }
-      def receive = {
-        case msg => child forward msg
-      }
-    }))
+    val failureParent = system.actorOf(ExceptionSieve.props(testActor, props))
   }
 
 }
