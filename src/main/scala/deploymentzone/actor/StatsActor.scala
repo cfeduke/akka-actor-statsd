@@ -17,7 +17,7 @@ class StatsActor(val address: InetSocketAddress, val namespace: String, private 
   extends Actor
   with StatsProtocolImplementation {
 
-  private val config = _config.getOrElse(Defaults.config)
+  protected[this] val config = _config.getOrElse(Config(address))
 
   require(address != null)
   require(StatsDBucketValidator(namespace),
@@ -25,7 +25,7 @@ class StatsActor(val address: InetSocketAddress, val namespace: String, private 
 
   val namespaceTx = NamespaceTransformer(namespace)
 
-  lazy val _connection: ActorRef = context.actorOf(UdpConnectedActor.props(address, self), "udp")
+  lazy val _connection: ActorRef = context.actorOf(UdpConnectedActor.props(config, self), "udp")
 
   override def connection = _connection
 

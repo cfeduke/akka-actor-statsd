@@ -17,6 +17,7 @@
     </appender>
 
     <logger name="akka" level="INFO" />
+    <logger name="deploymentzone" level="DEBUG" />
 
     <root level="DEBUG">
         <appender-ref ref="CONSOLE"/>
