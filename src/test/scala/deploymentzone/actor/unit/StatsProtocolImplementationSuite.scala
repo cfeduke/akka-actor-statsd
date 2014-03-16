@@ -6,6 +6,7 @@ import akka.testkit.ImplicitSender
 import akka.actor.{Props, ActorRef, Actor}
 import akka.io.UdpConnected
 import scala.concurrent.duration._
+import com.typesafe.config.ConfigFactory
 
 class StatsProtocolImplementationSuite
   extends TestKit("stats-protocol-implementation-suite")
@@ -35,6 +36,8 @@ class StatsProtocolImplementationSuite
   private class NoOpStatsActor(val connection : ActorRef)
     extends Actor
     with StatsProtocolImplementation {
+
+    override protected[this] val config = Config(ConfigFactory.load())
 
     override protected def process(msg: Metric[_]) = msg.toString
 

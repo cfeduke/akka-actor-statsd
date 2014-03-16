@@ -4,8 +4,8 @@ import org.scalatest.{WordSpecLike, Matchers}
 import akka.testkit.ImplicitSender
 import scala.concurrent.duration._
 import akka.actor._
-import akka.actor.SupervisorStrategy.Stop
-import akka.actor.OneForOneStrategy
+import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
+import java.util.concurrent.TimeUnit
 
 class ScheduledDispatcherActorSpec
   extends TestKit("scheduled-dispatcher-actor-spec")
@@ -41,8 +41,8 @@ class ScheduledDispatcherActorSpec
 
     "given several messages" when {
       "all messages are queued before the transmitInterval" should {
-        "combine all the messages" in {
-          val scheduled = system.actorOf(ScheduledDispatcherActor.props(250.milliseconds, testActor))
+        "combine all the messages" in new Environment(250) {
+          val scheduled = system.actorOf(ScheduledDispatcherActor.props(config, testActor))
           Seq("one", "two", "three", "four").foreach(msg => scheduled ! msg)
           expectMsg(300.milliseconds,
             """one
@@ -52,8 +52,8 @@ class ScheduledDispatcherActorSpec
         }
       }
       "some messages are staggered after the transmitInterval" should {
-        "receive one batch of messages and then another" in {
-          val scheduled = system.actorOf(ScheduledDispatcherActor.props(50.milliseconds, testActor))
+        "receive one batch of messages and then another" in new Environment(50) {
+          val scheduled = system.actorOf(ScheduledDispatcherActor.props(config, testActor))
           implicit val executionContext = system.dispatcher
           system.scheduler.scheduleOnce(100.milliseconds, scheduled, "three")
           Seq("one", "two").foreach(msg => scheduled ! msg)
@@ -66,20 +66,22 @@ class ScheduledDispatcherActorSpec
     }
   }
 
-  private class ExceptionCaptureEnvironment(packetSize: Int, transmitInterval: Long) {
-    val props = ScheduledDispatcherActor.props(packetSize, transmitInterval, system.deadLetters)
-    val failureParent = system.actorOf(Props(new Actor with ActorLogging {
-      var child: ActorRef = context.actorOf(props)
+  private class Environment(transmitInterval: Long) {
+    protected val baseConfig = ConfigFactory.empty()
+      .withValue(s"${Config.path}.transmit-interval", ConfigValueFactory.fromAnyRef(transmitInterval))
+    lazy val config = Config(baseConfig)
+  }
 
-      override val supervisorStrategy = OneForOneStrategy() {
-        case f =>
-          testActor ! f
-          Stop
-      }
-      def receive = {
-        case msg => child forward msg
-      }
-    }))
+  private class ExceptionCaptureEnvironment(packetSize: Int, transmitInterval: Long)
+    extends Environment(transmitInterval) {
+    override lazy val config = Config(
+      baseConfig.withValue(s"${Config.path}.packet-size",
+        ConfigValueFactory.fromAnyRef(packetSize)
+      )
+    )
+
+    val props = ScheduledDispatcherActor.props(config, system.deadLetters)
+    val failureParent = system.actorOf(ExceptionSieve.props(testActor, props))
   }
 
 }

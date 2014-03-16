@@ -9,12 +9,13 @@ private[actor] trait StatsProtocolImplementation
 
   protected def connection: ActorRef
   private var scheduledDispatcher: ActorRef = _
+  protected[this] val config: Config
 
   protected def process(msg: Metric[_]): String
 
   override def preStart() {
     connection ! UdpConnected.Connect
-    scheduledDispatcher = context.actorOf(ScheduledDispatcherActor.props(connection), "scheduled")
+    scheduledDispatcher = context.actorOf(ScheduledDispatcherActor.props(config, connection), "scheduled")
   }
 
   override def receive = connectionPending
