@@ -42,7 +42,7 @@ class Counter(val counterName: String) extends Actor {
 The counter messages themselves are curried for convience:
 
 ```scala
-val interval = Timing("interval"))
+val interval = Timing("interval")
 stats ! interval(3.seconds)
 stats ! interval(2.seconds)
 stats ! interval(1.second)
