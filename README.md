@@ -2,8 +2,10 @@
 
 A dead simple [statsd] client written in Scala as an actor using the [akka] framework.
 
-Currently at 0.1 release. We're using this software in a non-production setting 
+Currently at 0.2 snapshot. We're using this software in a non-production setting
 at [TrafficLand](http://www.trafficland.com).
+
+There is a 0.1 release; that version doesn't support [Typesafe configuration](https://github.com/typesafehub/config).
 
 ## Examples
 
@@ -103,13 +105,31 @@ As messages are transmitted to a stats actor those messages are queued for later
 transmission. By default the queue flushes every 100 milliseconds and combines messages
 together up to a packet size of 1,432 bytes (taking UTF-8 character sizes into account).
 
-The 0.2 milestone release will permit global configuration of these values.
-
 
 ## Configuration
 
-As of this version no configuration other than the log level is possible.
+You may pass your own Typesafe Config instance to the `StatsActor.props(Config)` method, or use the parameterless
+method `StatsActor.props()` to rely on `ConfigFactory.load()` to resolve settings. Here are the default settings,
+with the exception of hostname, which is a required setting:
 
+```
+deploymentzone {
+    akka-actor-statsd {
+        hostname = "required"
+        port = 8125
+        namespace = ""
+        # common packet sizes:
+        # fast ethernet:        1432
+        # gigabit ethernet:     8932
+        # commodity internet:    512
+        packet-size = 1432
+        transmit-interval = 100 ms
+    }
+}
+```
+
+Even if you do not explicitly pass a Config by using one of the other `StatsActor.props(...)` methods downstream actors
+in the network still respect the configuration file settings - or the defaults if no configuration file is used.
 
 ## Influences
 
