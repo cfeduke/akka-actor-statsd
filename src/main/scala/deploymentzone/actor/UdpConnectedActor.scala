@@ -18,7 +18,7 @@ private[actor] class UdpConnectedActor(val config: Config, val requester: ActorR
     case UdpConnected.Connect =>
       IO(UdpConnected) ! UdpConnected.Connect(self, remote)
     case connected @ UdpConnected.Connected =>
-      context.become(ready(sender()))
+      context.become(ready(sender))
       requester ! connected
   }
 
