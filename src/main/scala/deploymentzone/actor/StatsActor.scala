@@ -4,14 +4,13 @@ import akka.actor._
 import deploymentzone.actor.validation.StatsDBucketValidator
 import java.net.InetSocketAddress
 import deploymentzone.actor.domain.NamespaceTransformer
-import com.typesafe.config.ConfigFactory
 
 /**
  * An actor which sends counters to a StatsD instance via connected UDP.
  * @param address hostname and port (UDP) of the StatsD instance
  * @param namespace optional namespace to prefix all counter messages with
  * @param _config optional configuration settings; when not specified a default configuration is created based on what
- *                [[ConfigFactory]] loads
+ *                ConfigFactory loads
  */
 class StatsActor(val address: InetSocketAddress, val namespace: String, private val _config: Option[Config] = None)
   extends Actor

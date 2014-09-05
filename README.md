@@ -2,10 +2,10 @@
 
 A dead simple [statsd] client written in Scala as an actor using the [akka] framework.
 
-Currently at 0.2 snapshot. We're using this software in a non-production setting
+Currently at 0.4 snapshot. We're using this software in a non-production setting
 at [TrafficLand](http://www.trafficland.com).
 
-There is a 0.1 release; that version doesn't support [Typesafe configuration](https://github.com/typesafehub/config).
+0.4 is compiled with Scala 2.10.4 against Akka 2.3.4 which works with Play 2.3.4.
 
 ## Examples
 
