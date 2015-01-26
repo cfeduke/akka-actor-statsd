@@ -54,7 +54,7 @@ object Build extends sbt.Build {
   object CrossBuild {
     object Versions {
       val scala_210 = "2.10.4"
-      val scala_211 = "2.11.3"
+      val scala_211 = "2.11.5"
     }
   }
 
