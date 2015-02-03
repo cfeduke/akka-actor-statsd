@@ -24,7 +24,8 @@ private[actor] trait StatsProtocolImplementation
     case UdpConnected.Connected =>
       unstashAll()
       context.become(connected)
-    case _ => stash()
+    case _ =>
+      stash()
   }
   
   protected def connected: Actor.Receive = {

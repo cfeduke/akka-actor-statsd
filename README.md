@@ -67,6 +67,24 @@ perf ! Timing("page1.response")(250.milliseconds)
 perf ! Timing("page2.response")(100.milliseconds)
 ```
 
+### API
+
+There is a simple api if you dont want to use the actor's ! method's
+
+```scala
+implicit val statsActor = context.actorOf(StatsActor.props("stats.someserver.com"))
+
+Stats.increment("endpoint1")
+Stats.timing("page2.response")(250 milliseconds)
+
+Stats.withTimer("code.execution.time) {
+    //execute code here
+    Thread.sleep(new Random().nextInt())
+}
+```
+
+
+
 ## Installation
 
 Releases are hosted on Maven Central.

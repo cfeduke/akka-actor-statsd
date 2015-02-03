@@ -1,20 +1,21 @@
 import sbt._
 import sbt.Keys._
+import sbtrelease.ReleasePlugin._
 
 object Build extends sbt.Build {
 
   lazy val project = Project(
     id = "akka-actor-statsd",
     base = file("."),
-    settings = Project.defaultSettings ++ Seq(
+    settings = Project.defaultSettings ++ releaseSettings ++ Seq(
       name                  := "akka-actor-statsd",
-      organization          := "com.deploymentzone",
-      version               := "0.4",
+      organization          := "com.thenewmotion",
+      version               := "0.1.1-SNAPSHOT",
       licenses              := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
       homepage              := Some(url("https://github.com/cfeduke/akka-actor-statsd/")),
       scalaVersion          := CrossBuild.Versions.scala_211,
       crossScalaVersions    := Seq(CrossBuild.Versions.scala_211, CrossBuild.Versions.scala_210),
-      //ReleaseKeys.crossBuild := true,
+      ReleaseKeys.crossBuild := true,
       scalacOptions         := Seq(
                                 "-encoding", "UTF-8",
                                 "-unchecked",
@@ -28,18 +29,17 @@ object Build extends sbt.Build {
       libraryDependencies   += ficusVersion(scalaVersion).value,
 
       publishMavenStyle     := true,
+      credentials += Credentials(Path.userHome / ".ivy2" / ".credentials"),
       publishTo := {
-        val nexus = "https://oss.sonatype.org/"
-        if (version.value.trim.endsWith("SNAPSHOT"))
-          Some("snapshots" at nexus + "content/repositories/snapshots")
-        else
-          Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+        val nexus = "http://nexus.thenewmotion.com/content/repositories/"
+        if (isSnapshot.value) Some("snapshots" at nexus + "snapshots")
+        else Some("releases"  at nexus + "releases")
       },
       pomIncludeRepository := { _ => false },
       pomExtra :=
           <scm>
-            <url>git@github.com:cfeduke/akka-actor-statsd.git</url>
-            <connection>scm:git:git@github.com:cfeduke/akka-actor-statsd.git</connection>
+            <url>git@github.com:thenewmotion/akka-actor-statsd.git</url>
+            <connection>scm:git:git@github.com:thenewmotion/akka-actor-statsd.git</connection>
           </scm>
           <developers>
             <developer>
@@ -54,7 +54,7 @@ object Build extends sbt.Build {
   object CrossBuild {
     object Versions {
       val scala_210 = "2.10.4"
-      val scala_211 = "2.11.5"
+      val scala_211 = "2.11.2"
     }
   }
 
