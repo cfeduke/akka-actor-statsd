@@ -12,9 +12,21 @@ object Build extends sbt.Build {
       version               := "0.4",
       licenses              := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
       homepage              := Some(url("https://github.com/cfeduke/akka-actor-statsd/")),
-      scalaVersion          := "2.10.4",
-      scalacOptions         := Seq("-deprecation", "-feature", "-encoding", "utf8"),
+      scalaVersion          := CrossBuild.Versions.scala_211,
+      crossScalaVersions    := Seq(CrossBuild.Versions.scala_211, CrossBuild.Versions.scala_210),
+      //ReleaseKeys.crossBuild := true,
+      scalacOptions         := Seq(
+                                "-encoding", "UTF-8",
+                                "-unchecked",
+                                "-deprecation",
+                                "-feature",
+                                "-Xlog-reflective-calls"
+                              ),
+
       libraryDependencies   ++= Dependencies(),
+
+      libraryDependencies   += ficusVersion(scalaVersion).value,
+
       publishMavenStyle     := true,
       publishTo := {
         val nexus = "https://oss.sonatype.org/"
@@ -39,20 +51,25 @@ object Build extends sbt.Build {
     )
   )
 
+  object CrossBuild {
+    object Versions {
+      val scala_210 = "2.10.4"
+      val scala_211 = "2.11.5"
+    }
+  }
+
   object Dependencies {
 
     object Versions {
       val akka              = "2.3.4"
-      val scalatest         = "2.0"
+      val scalatest         = "2.2.1"
       val logback           = "1.0.13"
-      val ficus             = "1.0.0"
     }
 
     val compileDependencies = Seq(
       "com.typesafe.akka"   %%  "akka-actor"      % Versions.akka,
       "com.typesafe.akka"   %%  "akka-slf4j"      % Versions.akka,
-      "ch.qos.logback"      %   "logback-classic" % Versions.logback,
-      "net.ceedubs"         %%  "ficus"           % Versions.ficus
+      "ch.qos.logback"      %   "logback-classic" % Versions.logback
     )
 
     val testDependencies = Seq(
@@ -64,4 +81,10 @@ object Build extends sbt.Build {
 
   }
 
+  def ficusVersion(scalaVersion:SettingKey[String]) = Def.setting {
+    scalaVersion.value match {
+      case CrossBuild.Versions.scala_210 => "net.ceedubs" %%  "ficus" %"1.0.1"
+      case CrossBuild.Versions.scala_211 => "net.ceedubs" %%  "ficus" %"1.1.2"
+    }
+  }
 }
