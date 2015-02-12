@@ -23,6 +23,8 @@ private[actor] class Config(private val _hostname: Option[String],
   val transmitInterval =
     underlyingConfig.as[Option[FiniteDuration]](s"$path.transmit-interval").getOrElse(Defaults.TRANSMIT_INTERVAL)
 
+  val enableMultiMetric = underlyingConfig.as[Option[Boolean]](s"$path.enable-multimetric").getOrElse(Defaults.ENABLE_MULTIMETRIC)
+
 }
 
 private[actor] object Config {
@@ -40,6 +42,7 @@ private[actor] object Defaults {
   val STATSD_UDP_PORT = 8125
   val PACKET_SIZE = PacketSize.FAST_ETHERNET
   val TRANSMIT_INTERVAL = 100.milliseconds
+  val ENABLE_MULTIMETRIC = true
   
   private[actor] lazy val underlyingConfig = ConfigFactory.load()
 

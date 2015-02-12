@@ -1,7 +1,7 @@
 package deploymentzone.actor
 
 import scala.concurrent.duration._
-import akka.actor.{ActorRef, ActorLogging, Props, Actor}
+import akka.actor._
 import deploymentzone.actor.domain.MultiMetricQueue
 import java.util.concurrent.TimeUnit
 
@@ -27,11 +27,16 @@ private[actor] class ScheduledDispatcherActor(config: Config, val receiver: Acto
 
   val mmq = MultiMetricQueue(packetSize)(system)
 
-  val recurringTransmit =
-    system.scheduler.schedule(transmitInterval, transmitInterval, self, Transmit)(system.dispatcher, self)
+  val recurringTransmit:Cancellable = if (config.enableMultiMetric)
+                                        system.scheduler.schedule(transmitInterval, transmitInterval, self, Transmit)(system.dispatcher, self)
+                                      else // bogus scheduler you can only cancel
+                                        new Cancellable {override def isCancelled: Boolean = true; override def cancel(): Boolean = true }
 
   def receive = {
-    case msg: String => mmq.enqueue(msg)
+    case msg: String => {
+      if (config.enableMultiMetric) mmq.enqueue(msg)
+      else receiver ! msg
+    }
     case Transmit =>
       mmq.payload().foreach(payload => receiver ! payload)
   }
