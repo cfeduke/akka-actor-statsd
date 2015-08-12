@@ -152,5 +152,25 @@ object Stats {
     result
   }
 
+  /**
+   * Executes the code block and times the execution time
+   * @param bucket the bucket to set the time in ms
+   * @param sampleRate sampleRate defaults to 1.0
+   * @param timed code block to time
+   * @param statsActor Implicitly scoped [[StatsActor]]
+   * @tparam T return type of executed code block
+   */
+  def withCountAndTimer[T](bucket:String, sampleRate:Double = 1.0)(timed : => T)(implicit statsActor: ActorRef): T = {
+    import scala.concurrent.duration._
+
+    val start = System.currentTimeMillis()
+    val result = timed
+    val time = System.currentTimeMillis()-start
+    statsActor ! Increment(bucket)
+    statsActor ! Timing(bucket, sampleRate)(time.milliseconds)
+    result
+  }
+
+
 }
 
