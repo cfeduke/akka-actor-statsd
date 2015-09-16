@@ -12,9 +12,9 @@ object Build extends sbt.Build {
       version               := "0.4-SNAPSHOT",
       licenses              := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
       homepage              := Some(url("https://github.com/cfeduke/akka-actor-statsd/")),
-      scalaVersion          := "2.10.4",
+      crossScalaVersions    := Seq("2.10.4", "2.11.7"),
       scalacOptions         := Seq("-deprecation", "-feature", "-encoding", "utf8"),
-      libraryDependencies   ++= Dependencies(),
+      libraryDependencies   <++= (scalaVersion) { sv => Dependencies(sv) },
       publishMavenStyle     := true,
       publishTo := {
         val nexus = "https://oss.sonatype.org/"
@@ -43,16 +43,19 @@ object Build extends sbt.Build {
 
     object Versions {
       val akka              = "2.3.4"
-      val scalatest         = "2.0"
+      val scalatest         = "2.2.1"
       val logback           = "1.0.13"
-      val ficus             = "1.0.0"
+      def ficus(scalaVersion : String) = scalaVersion match {
+        case "2.11.7" => "1.1.2"
+        case "2.10.4" => "1.0.1"
+      }
     }
 
-    val compileDependencies = Seq(
+    def compileDependencies(scalaVersion : String) = Seq(
       "com.typesafe.akka"   %%  "akka-actor"      % Versions.akka,
       "com.typesafe.akka"   %%  "akka-slf4j"      % Versions.akka,
       "ch.qos.logback"      %   "logback-classic" % Versions.logback,
-      "net.ceedubs"         %%  "ficus"           % Versions.ficus
+      "net.ceedubs"         %%  "ficus"           % Versions.ficus(scalaVersion)
     )
 
     val testDependencies = Seq(
@@ -60,7 +63,7 @@ object Build extends sbt.Build {
       "org.scalatest"       %% "scalatest"        % Versions.scalatest    % "test"
     )
 
-    def apply(): Seq[ModuleID] = compileDependencies ++ testDependencies
+    def apply(scalaVersion : String): Seq[ModuleID] = compileDependencies(scalaVersion) ++ testDependencies
 
   }
 
