@@ -1,13 +1,15 @@
 package deploymentzone.actor
 
-import net.ceedubs.ficus.FicusConfig._
+import net.ceedubs.ficus.Ficus._
 import java.net.InetSocketAddress
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config => TsConfig, _}
 import scala.concurrent.duration._
 
-private[actor] class Config(private val _hostname: Option[String], 
-                            private val _port: Option[Int],
-                            val underlyingConfig: com.typesafe.config.Config) {
+private[actor] class Config(
+  _hostname: Option[String],
+  _port: Option[Int],
+  val underlyingConfig: TsConfig
+) {
   import Defaults._
   import Config.path
 
@@ -43,7 +45,7 @@ private[actor] object Defaults {
   val PACKET_SIZE = PacketSize.FAST_ETHERNET
   val TRANSMIT_INTERVAL = 100.milliseconds
   val ENABLE_MULTIMETRIC = true
-  
+
   private[actor] lazy val underlyingConfig = ConfigFactory.load()
 
   lazy val config: Config = Config(underlyingConfig)

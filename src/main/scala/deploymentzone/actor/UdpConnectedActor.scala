@@ -1,7 +1,7 @@
 package deploymentzone.actor
 
 import akka.actor._
-import akka.io.{UdpConnected, IO}
+import akka.io._, UdpConnected._
 import akka.util.ByteString
 
 /* originated from: http://doc.akka.io/docs/akka/snapshot/scala/io-udp.html */
@@ -15,21 +15,21 @@ private[actor] class UdpConnectedActor(val config: Config, val requester: ActorR
   val remote = config.address
 
   def receive = {
-    case UdpConnected.Connect =>
-      IO(UdpConnected) ! UdpConnected.Connect(self, remote)
-    case connected @ UdpConnected.Connected =>
+    case Connect =>
+      IO(UdpConnected) ! Connect(self, remote)
+    case Connected =>
       context.become(ready(sender))
-      requester ! connected
+      requester ! Connected
   }
 
   def ready(connection: ActorRef): Receive = {
     case msg: String =>
-      connection ! UdpConnected.Send(ByteString(msg))
-    case d @ UdpConnected.Disconnect => connection ! d
-    case UdpConnected.Disconnected   => context.stop(self)
-    case f : UdpConnected.CommandFailed =>
+      connection ! Send(ByteString(msg))
+    case Disconnect => connection ! Disconnect
+    case Disconnected   => context.stop(self)
+    case f : CommandFailed =>
       f.cmd match {
-        case send: UdpConnected.Send => log warning s"Unable to deliver payload: ${send.payload.decodeString("utf-8")}"
+        case send: Send => log warning s"Unable to deliver payload: ${send.payload.decodeString("utf-8")}"
         case _                       => log warning s"CommandFailed: ${f.cmd} (${f.cmd.getClass})"
       }
   }

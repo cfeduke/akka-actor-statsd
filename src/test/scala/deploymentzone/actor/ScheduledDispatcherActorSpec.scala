@@ -2,10 +2,10 @@ package deploymentzone.actor
 
 import org.scalatest.{WordSpecLike, Matchers}
 import akka.testkit.ImplicitSender
-import scala.concurrent.duration._
 import akka.actor._
 import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
 import java.util.concurrent.TimeUnit
+
 
 class ScheduledDispatcherActorSpec
   extends TestKit("scheduled-dispatcher-actor-spec")

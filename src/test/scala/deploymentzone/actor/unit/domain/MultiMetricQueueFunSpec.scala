@@ -1,12 +1,14 @@
-package deploymentzone.actor.unit.domain
+package deploymentzone.actor
+package unit.domain
 
-import org.scalatest.FunSpec
+import org.scalatest.FunSpecLike
+
 import deploymentzone.actor.domain.MultiMetricQueue
-import deploymentzone.actor.ImplicitActorSystem
+
 
 class MultiMetricQueueFunSpec
-  extends FunSpec
-  with ImplicitActorSystem {
+  extends TestKit("mmq-spec")
+  with FunSpecLike {
 
   describe("A MultiMetricQueue") {
     describe("when empty") {
