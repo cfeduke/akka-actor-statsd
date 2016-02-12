@@ -1,5 +1,6 @@
 package deploymentzone.actor
 
+import scala.concurrent.duration._
 import org.scalatest.{WordSpecLike, Matchers}
 import akka.testkit.ImplicitSender
 import akka.actor._
@@ -40,29 +41,29 @@ class ScheduledDispatcherActorSpec
     }
 
     "given several messages" when {
-//      "all messages are queued before the transmitInterval" should {
-//        "combine all the messages" in new Environment(250) {
-//          val scheduled = system.actorOf(ScheduledDispatcherActor.props(config, testActor))
-//          Seq("one", "two", "three", "four").foreach(msg => scheduled ! msg)
-//          expectMsg(300.milliseconds,
-//            """one
-//              |two
-//              |three
-//              |four""".stripMargin)
-//        }
-//      }
-//      "some messages are staggered after the transmitInterval" should {
-//        "receive one batch of messages and then another" in new Environment(50) {
-//          val scheduled = system.actorOf(ScheduledDispatcherActor.props(config, testActor))
-//          implicit val executionContext = system.dispatcher
-//          system.scheduler.scheduleOnce(100.milliseconds, scheduled, "three")
-//          Seq("one", "two").foreach(msg => scheduled ! msg)
-//          expectMsg(100.milliseconds,
-//            """one
-//              |two""".stripMargin)
-//          expectMsg("three")
-//        }
-//      }
+      "all messages are queued before the transmitInterval" should {
+        "combine all the messages" in new Environment(250) {
+          val scheduled = system.actorOf(ScheduledDispatcherActor.props(config, testActor))
+          Seq("one", "two", "three", "four").foreach(msg => scheduled ! msg)
+          expectMsg(300.milliseconds,
+            """one
+              |two
+              |three
+              |four""".stripMargin)
+        }
+      }
+      "some messages are staggered after the transmitInterval" should {
+        "receive one batch of messages and then another" in new Environment(50) {
+          val scheduled = system.actorOf(ScheduledDispatcherActor.props(config, testActor))
+          implicit val executionContext = system.dispatcher
+          system.scheduler.scheduleOnce(100.milliseconds, scheduled, "three")
+          Seq("one", "two").foreach(msg => scheduled ! msg)
+          expectMsg(100.milliseconds,
+            """one
+              |two""".stripMargin)
+          expectMsg("three")
+        }
+      }
     }
   }
 

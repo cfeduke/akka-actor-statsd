@@ -1,6 +1,7 @@
-package deploymentzone.actor.unit
+package deploymentzone.actor
+package unit
 
-import deploymentzone.actor._
+import scala.concurrent.duration._
 import org.scalatest.FunSuiteLike
 import akka.testkit.ImplicitSender
 import akka.actor.{Props, ActorRef, Actor}
@@ -22,16 +23,17 @@ class StatsProtocolImplementationSuite
     expectMsg(msg.toString)
   }
 
-//  test("stashes messages until connection is established") {
-//    val stats = system.actorOf(NoOpStatsActor.props(testActor))
-//    expectMsg(UdpConnected.Connect)
-//    val msgs = Seq(Decrement("turtles"),
-//                   Gauge("ninjas", 5.0)(4000L),
-//                   Timing("eric.likes.haskell")(9.seconds))
-//    msgs.foreach(msg => stats ! msg)
-//    stats ! UdpConnected.Connected
-//    expectMsg(msgs.mkString("\n").stripLineEnd)
-//  }
+  test("stashes messages until connection is established") {
+    val stats = system.actorOf(NoOpStatsActor.props(testActor))
+    expectMsg(UdpConnected.Connect)
+    val msgs = Seq(
+      Decrement("turtles"),
+      Gauge("ninjas", 5.0)(4000L),
+      Timing("eric.likes.haskell")(9.seconds))
+    msgs.foreach(msg => stats ! msg)
+    stats ! UdpConnected.Connected
+    expectMsg(msgs.mkString("\n").stripLineEnd)
+  }
 
   private class NoOpStatsActor(val connection : ActorRef)
     extends Actor
