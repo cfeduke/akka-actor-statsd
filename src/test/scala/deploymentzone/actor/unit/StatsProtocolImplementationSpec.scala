@@ -9,8 +9,8 @@ import akka.io.UdpConnected
 import com.typesafe.config.ConfigFactory
 
 
-class StatsProtocolImplementationSuite
-  extends TestKit("stats-protocol-implementation-suite")
+class StatsProtocolImplementationSpec
+  extends TestKit("stats-protocol-implementation-spec")
   with FunSuiteLike
   with ImplicitSender {
 
@@ -39,7 +39,8 @@ class StatsProtocolImplementationSuite
     extends Actor
     with StatsProtocolImplementation {
 
-    override protected[this] val config = Config(ConfigFactory.load())
+    override protected[this] val config =
+      Config(ConfigFactory.load("StatsProtocolImplementationSpec.conf"))
 
     override protected def process(msg: Metric[_]) = msg.toString
 

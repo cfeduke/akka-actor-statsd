@@ -13,20 +13,20 @@ class MultiMetricQueueFunSpec
   describe("A MultiMetricQueue") {
     describe("when empty") {
       it("returns a None payload") {
-        assert(MultiMetricQueue().payload() == None)
+        assert(MultiMetricQueue(512).payload() == None)
       }
     }
 
     describe("when having a single element") {
       it("returns that element with no newline") {
-        val subject = MultiMetricQueue().enqueue("message")
+        val subject = MultiMetricQueue(512).enqueue("message")
         assert(subject.payload() == Some("message"))
       }
     }
 
     describe("when having two elements") {
       it("returns the elements separated by a newline") {
-        val subject = MultiMetricQueue().enqueue("message1").enqueue("message2")
+        val subject = MultiMetricQueue(512).enqueue("message1").enqueue("message2")
         assert(subject.payload() ==
           Some("""message1
             |message2""".stripMargin))

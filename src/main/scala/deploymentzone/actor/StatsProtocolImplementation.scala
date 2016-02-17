@@ -8,10 +8,12 @@ private[actor] trait StatsProtocolImplementation
   with ActorLogging { this: Actor =>
 
   protected def connection: ActorRef
-  private var scheduledDispatcher: ActorRef = _
-  protected[this] val config: Config
+
+  protected[this] def config: Config
 
   protected def process(msg: Metric[_]): String
+
+  private var scheduledDispatcher: ActorRef = _
 
   override def preStart() {
     connection ! UdpConnected.Connect
@@ -27,7 +29,7 @@ private[actor] trait StatsProtocolImplementation
     case _ =>
       stash()
   }
-  
+
   protected def connected: Actor.Receive = {
     case msg: Metric[_] =>
       scheduledDispatcher ! process(msg)

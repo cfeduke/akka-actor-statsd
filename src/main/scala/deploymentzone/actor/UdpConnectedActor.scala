@@ -1,5 +1,6 @@
 package deploymentzone.actor
 
+import java.net.InetSocketAddress
 import akka.actor._
 import akka.io._, UdpConnected._
 import akka.util.ByteString
@@ -7,19 +8,23 @@ import akka.util.ByteString
 /* originated from: http://doc.akka.io/docs/akka/snapshot/scala/io-udp.html */
 
 /* by using a connected form instead of a simple sender, security checks are cached instead of verified on every send */
-private[actor] class UdpConnectedActor(val config: Config, val requester: ActorRef)
-  extends Actor
+private[actor] class UdpConnectedActor(
+  remoteAddress: InetSocketAddress
+) extends Actor
   with ActorLogging {
 
   import context.system
-  val remote = config.address
 
   def receive = {
     case Connect =>
-      IO(UdpConnected) ! Connect(self, remote)
+      IO(UdpConnected) ! Connect(self, remoteAddress)
+      context.become(starting(sender()))
+  }
+
+  def starting(initiator: ActorRef): Receive = {
     case Connected =>
-      context.become(ready(sender))
-      requester ! Connected
+      context.become(ready(sender()))
+      initiator ! Connected
   }
 
   def ready(connection: ActorRef): Receive = {
@@ -41,5 +46,6 @@ private[actor] class UdpConnectedActor(val config: Config, val requester: ActorR
 }
 
 private[actor] object UdpConnectedActor {
-  def props(config: Config, requester: ActorRef) = Props(new UdpConnectedActor(config, requester))
+  def props(remoteAddress: InetSocketAddress) =
+    Props(new UdpConnectedActor(remoteAddress))
 }

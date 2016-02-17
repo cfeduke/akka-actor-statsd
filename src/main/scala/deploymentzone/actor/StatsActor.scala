@@ -14,44 +14,27 @@ import scala.concurrent.duration.Duration
  * @param _config optional configuration settings; when not specified a default configuration is created based on what
  *                ConfigFactory loads
  */
-class StatsActor(val address: InetSocketAddress, val namespace: String, private val _config: Option[Config] = None)
-  extends Actor
+class StatsActor(
+  val config: Config
+) extends Actor
   with StatsProtocolImplementation {
 
-  protected[this] val config = _config.getOrElse(Config(address))
+  require(StatsDBucketValidator(config.namespace),
+    s"""reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS})"""+
+    """may not be used in namespaces and namespaces may not start or end"""+
+    """with a period (".")""")
 
-  require(address != null)
-  require(StatsDBucketValidator(namespace),
-    s"""reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in namespaces and namespaces may not start or end with a period (".")""")
+  val namespaceTx = NamespaceTransformer(config.namespace)
+  override protected def process(msg: Metric[_]) = namespaceTx(msg)
 
-  val namespaceTx = NamespaceTransformer(namespace)
-
-  lazy val _connection: ActorRef = context.actorOf(UdpConnectedActor.props(config, self), "udp")
-
-  override def connection = _connection
-
-  override def process(msg: Metric[_]) = namespaceTx(msg)
+  override protected lazy val connection =
+    context.actorOf(UdpConnectedActor.props(config.address), "statsd-udp-connection")
 
 }
 
 object StatsActor {
-  private val defaultConfig = Defaults.config
-
-  def props(address: InetSocketAddress, namespace: String) = Props(new StatsActor(address, namespace))
-  def props(address: InetSocketAddress) = Props(new StatsActor(address, defaultConfig.namespace))
-  def props(hostname: String, port: Int, namespace: String = defaultConfig.namespace) =
-    Props(new StatsActor(new InetSocketAddress(hostname, port), namespace))
-  def props(hostname: String, namespace: String) =
-    Props(new StatsActor(new InetSocketAddress(hostname, defaultConfig.port), namespace))
-  def props(hostname: String): Props = props(hostname, defaultConfig.namespace)
-  def props(config: com.typesafe.config.Config): Props = {
-    val c = Config(config)
-    Props(new StatsActor(c.address, c.namespace, Some(c)))
-  }
-  def props(): Props = {
-    Props(new StatsActor(defaultConfig.address, defaultConfig.namespace, Some(defaultConfig)))
-  }
-
+  def props(cfg: Config = Config()): Props =
+    Props(new StatsActor(cfg))
 }
 
 object Stats {

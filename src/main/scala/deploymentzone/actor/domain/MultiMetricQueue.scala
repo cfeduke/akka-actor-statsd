@@ -1,7 +1,6 @@
 package deploymentzone.actor.domain
 
 import scala.collection.immutable
-import deploymentzone.actor.PacketSize
 import scala.annotation.tailrec
 import java.nio.charset.Charset
 import akka.event.Logging
@@ -105,6 +104,6 @@ object MultiMetricQueue {
    *
    * @param packetSize maximum packet size for a single aggregated message
    */
-  def apply(packetSize: Int = PacketSize.GIGABIT_ETHERNET)(implicit system: ActorSystem) =
+  def apply(packetSize: Int)(implicit system: ActorSystem) =
     new MultiMetricQueue(packetSize)(system)
 }

@@ -1,12 +1,14 @@
 package deploymentzone.actor.integration
 
-import deploymentzone.actor._
-import org.scalatest.{WordSpecLike, Matchers}
-import java.net.InetSocketAddress
-import akka.testkit.{TestProbe, ImplicitSender}
-import akka.io.Udp
 import scala.concurrent.duration._
+import com.typesafe.config.ConfigFactory
+import java.net.InetSocketAddress
+import akka.io.Udp
 import akka.actor.Terminated
+import akka.testkit.{TestProbe, ImplicitSender}
+import org.scalatest.{WordSpecLike, Matchers}
+import deploymentzone.actor._
+
 
 class StatsActorSpec
   extends TestKit("stats-actor-integration-spec")
@@ -17,9 +19,12 @@ class StatsActorSpec
   "StatsActor" when {
     "initialized with an empty namespace" should {
       "send the expected message" in new Environment {
-        val stats = system.actorOf(StatsActor.props(address, ""), "stats")
+        val withoutNamespace = baseConfig.copy(namespace = "")
+        val stats = system.actorOf(StatsActor.props(withoutNamespace), "stats")
+
         val msg = Increment("dog")
         stats ! msg
+
         expectMsg(msg.toString)
 
         shutdown()
@@ -27,45 +32,27 @@ class StatsActorSpec
     }
     "initialized with a namespace" should {
       "send the expected message" in new Environment {
-        val stats = system.actorOf(StatsActor.props(address, "name.space"), "stats-ns")
+        val withNamespace = baseConfig.copy(namespace = "name.space")
+        val stats = system.actorOf(StatsActor.props(withNamespace), "stats-ns")
         val msg = Gauge("gauge")(340L)
         stats ! msg
         expectMsg(s"name.space.$msg")
 
         shutdown()
       }
-      "sending the same message over and over again does not alter the message" in new Environment {
-        val stats = system.actorOf(StatsActor.props(address, "name.space"), "stats-ns-repeat")
+      "not alter message that is sent over and over" in new Environment {
+        val stats = system.actorOf(statsActor, "stats-ns-repeat")
         val msg = Increment("kittens")
         stats ! msg
-        expectMsg(s"name.space.$msg")
-        stats ! msg
-        expectMsg(s"name.space.$msg")
-      }
-    }
-    "initialized with a null address" should {
-      "throw an exception" in new Environment {
-        val inetSocketAddress: InetSocketAddress = null
-        val probe = TestProbe()
-        probe watch system.actorOf(StatsActor.props(inetSocketAddress), "stats-failure")
-        probe expectMsgClass classOf[Terminated]
-
-        shutdown()
-      }
-    }
-    "initialized with a null namespace" should {
-      "be permitted" in new Environment {
-        val stats = system.actorOf(StatsActor.props(address, null), "stats-null-ns")
-        val msg = Timing("xyz")(40.seconds)
+        expectMsg(msg.toString)
         stats ! msg
         expectMsg(msg.toString)
-
-        shutdown()
       }
     }
+
     "sending multiple messages quickly in sequence" should {
       "transmit all the messages" in new Environment {
-        val stats = system.actorOf(StatsActor.props(address, null), "stats-mmsg")
+        val stats = system.actorOf(statsActor, "stats-mmsg")
         val msgs = Seq(
           Timing("xyz")(40.seconds),
           Increment("ninjas"),
@@ -78,10 +65,11 @@ class StatsActorSpec
         shutdown()
       }
     }
+
     "multiple instances" should {
       "all deliver their messages" in new Environment {
-        val stats1 = system.actorOf(StatsActor.props(address, null), "mi-stats1")
-        val stats2 = system.actorOf(StatsActor.props(address, null), "mi-stats2")
+        val stats1 = system.actorOf(statsActor, "mi-stats1")
+        val stats2 = system.actorOf(statsActor, "mi-stats2")
         val msg1 = Increment("count")
         val msg2 = Decrement("count")
         stats1 ! msg1
@@ -93,7 +81,14 @@ class StatsActorSpec
 
   private class Environment {
     val listener = system.actorOf(UdpListenerActor.props(testActor))
-    val address = expectMsgClass(classOf[InetSocketAddress])
+    def boundListenerAddress() = expectMsgClass(classOf[InetSocketAddress])
+
+    val baseConfig = Config(
+      ConfigFactory
+        .parseResources("StatsActorSpec.conf")
+        .withFallback(ConfigFactory.load))
+      .copy(address = boundListenerAddress())
+    val statsActor = StatsActor.props(baseConfig)
 
     def shutdown() {
       listener ! Udp.Unbind

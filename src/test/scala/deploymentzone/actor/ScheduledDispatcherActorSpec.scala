@@ -68,18 +68,20 @@ class ScheduledDispatcherActorSpec
   }
 
   private class Environment(transmitInterval: Long) {
-    protected val baseConfig = ConfigFactory.empty()
-      .withValue(s"${Config.path}.transmit-interval", ConfigValueFactory.fromAnyRef(transmitInterval))
-    lazy val config = Config(baseConfig)
+    def config = Config(
+      ConfigFactory
+        .load("ScheduledDispatcherActorSpec.conf")
+        .withValue(
+          "deploymentzone.akka-actor-statsd.transmit-interval",
+          ConfigValueFactory.fromAnyRef(transmitInterval)))
   }
 
-  private class ExceptionCaptureEnvironment(packetSize: Int, transmitInterval: Long)
-    extends Environment(transmitInterval) {
-    override lazy val config = Config(
-      baseConfig.withValue(s"${Config.path}.packet-size",
-        ConfigValueFactory.fromAnyRef(packetSize)
-      )
-    )
+  private class ExceptionCaptureEnvironment(
+    packetSize: Int,
+    transmitInterval: Long
+  ) extends Environment(transmitInterval) {
+
+    override def config = super.config.copy(packetSize = packetSize)
 
     val props = ScheduledDispatcherActor.props(config, system.deadLetters)
     val failureParent = system.actorOf(ExceptionSieve.props(testActor, props))
