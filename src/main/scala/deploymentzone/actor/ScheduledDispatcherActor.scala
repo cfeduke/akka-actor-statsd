@@ -5,8 +5,10 @@ import akka.actor._
 import deploymentzone.actor.domain.MultiMetricQueue
 import java.util.concurrent.TimeUnit
 
-private[actor] class ScheduledDispatcherActor(config: Config, val receiver: ActorRef)
-  extends Actor
+private[actor] class ScheduledDispatcherActor(
+  config: Config,
+  connection: ActorRef
+) extends Actor
   with ActorLogging {
 
   import ScheduledDispatcherActor._
@@ -35,10 +37,10 @@ private[actor] class ScheduledDispatcherActor(config: Config, val receiver: Acto
   def receive = {
     case msg: String => {
       if (config.enableMultiMetric) mmq.enqueue(msg)
-      else receiver ! msg
+      else connection ! msg
     }
     case Transmit =>
-      mmq.payload().foreach(payload => receiver ! payload)
+      mmq.payload().foreach(connection ! _)
   }
 
   override def postStop() {
@@ -52,5 +54,5 @@ private[actor] object ScheduledDispatcherActor {
   val PACKET_SIZE_NEGATIVE_ZERO_MESSAGE = "packetSize cannot be negative or 0"
   val TRANSMIT_INTERVAL_NEGATIVE_ZERO_MESSAGE = "transmitInterval cannot be negative or 0"
 
-  def props(config: Config, receiver: ActorRef): Props = Props(new ScheduledDispatcherActor(config, receiver))
+  def props(config: Config, connection: ActorRef): Props = Props(new ScheduledDispatcherActor(config, connection))
 }

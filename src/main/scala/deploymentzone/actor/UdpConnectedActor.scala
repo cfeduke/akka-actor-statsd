@@ -5,9 +5,16 @@ import akka.actor._
 import akka.io._, UdpConnected._
 import akka.util.ByteString
 
-/* originated from: http://doc.akka.io/docs/akka/snapshot/scala/io-udp.html */
 
-/* by using a connected form instead of a simple sender, security checks are cached instead of verified on every send */
+/** Communication is restricted to one specific remote socket address.
+  * Thus it's named 'connected' even though UDP is connectionless protocol.
+  *
+  * It has benefit of cached security checks (if SecurityManager is enabled)
+  * instead of verification on every message sent,
+  * when datagrams can be sent/received to/from any destination.
+  *
+  * Based on example from http://doc.akka.io/docs/akka/2.4.1/scala/io-udp.html
+  */
 private[actor] class UdpConnectedActor(
   remoteAddress: InetSocketAddress
 ) extends Actor
@@ -28,15 +35,17 @@ private[actor] class UdpConnectedActor(
   }
 
   def ready(connection: ActorRef): Receive = {
-    case msg: String =>
-      connection ! Send(ByteString(msg))
+    case msg: String => connection ! Send(ByteString(msg))
     case Disconnect => connection ! Disconnect
-    case Disconnected   => context.stop(self)
-    case f : CommandFailed =>
-      f.cmd match {
-        case send: Send => log warning s"Unable to deliver payload: ${send.payload.decodeString("utf-8")}"
-        case _                       => log warning s"CommandFailed: ${f.cmd} (${f.cmd.getClass})"
+    case Disconnected => context.stop(self)
+    case CommandFailed(cmd) =>
+      val msg = cmd match {
+        case Send(payload, _) =>
+          s"Unable to deliver payload: ${payload.utf8String} to $remoteAddress"
+        case _  =>
+          s"CommandFailed: $cmd (${cmd.getClass})"
       }
+      log warning msg
   }
 
   override def unhandled(message: Any) = {

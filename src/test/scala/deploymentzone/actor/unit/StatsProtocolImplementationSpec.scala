@@ -2,7 +2,8 @@ package deploymentzone.actor
 package unit
 
 import scala.concurrent.duration._
-import org.scalatest.FunSuiteLike
+import deploymentzone.actor._
+import org.scalatest.FunSpecLike
 import akka.testkit.ImplicitSender
 import akka.actor.{Props, ActorRef, Actor}
 import akka.io.UdpConnected
@@ -11,28 +12,31 @@ import com.typesafe.config.ConfigFactory
 
 class StatsProtocolImplementationSpec
   extends TestKit("stats-protocol-implementation-spec")
-  with FunSuiteLike
+  with FunSpecLike
   with ImplicitSender {
 
-  test("connects and then relays a message") {
-    val stats = system.actorOf(NoOpStatsActor.props(testActor))
-    expectMsg(UdpConnected.Connect)
-    stats ! UdpConnected.Connected
-    val msg = Increment("ninjas")
-    stats ! msg
-    expectMsg(msg.toString)
-  }
+  describe("StatsProtocolImplementation") {
+    it("relays a message when connected") {
+      val stats = system.actorOf(NoOpStatsActor.props(testActor))
+      expectMsg(UdpConnected.Connect)
+      stats ! UdpConnected.Connected
+      val msg = Increment("ninjas")
+      stats ! msg
+      expectMsg(msg.toString)
+    }
 
-  test("stashes messages until connection is established") {
-    val stats = system.actorOf(NoOpStatsActor.props(testActor))
-    expectMsg(UdpConnected.Connect)
-    val msgs = Seq(
-      Decrement("turtles"),
-      Gauge("ninjas", 5.0)(4000L),
-      Timing("eric.likes.haskell")(9.seconds))
-    msgs.foreach(msg => stats ! msg)
-    stats ! UdpConnected.Connected
-    expectMsg(msgs.mkString("\n").stripLineEnd)
+    it("stashes messages until connection is established") {
+      val stats = system.actorOf(NoOpStatsActor.props(testActor))
+      expectMsg(UdpConnected.Connect)
+      val msgs = Seq(
+        Decrement("turtles"),
+        Gauge("ninjas", 5.0)(4000L),
+        Timing("eric.likes.haskell")(9.seconds))
+      msgs.foreach(msg => stats ! msg)
+      expectNoMsg(2.seconds)
+      stats ! UdpConnected.Connected
+      expectMsg(msgs.mkString("\n").stripLineEnd)
+    }
   }
 
   private class NoOpStatsActor(val connection : ActorRef)

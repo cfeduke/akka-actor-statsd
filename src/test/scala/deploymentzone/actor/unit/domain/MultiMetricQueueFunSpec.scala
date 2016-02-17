@@ -2,7 +2,7 @@ package deploymentzone.actor
 package unit.domain
 
 import org.scalatest.FunSpecLike
-
+import deploymentzone.actor.TestKit
 import deploymentzone.actor.domain.MultiMetricQueue
 
 

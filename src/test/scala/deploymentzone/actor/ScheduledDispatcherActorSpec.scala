@@ -5,7 +5,11 @@ import org.scalatest.{WordSpecLike, Matchers}
 import akka.testkit.ImplicitSender
 import akka.actor._
 import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
-import java.util.concurrent.TimeUnit
+import akka.actor._
+
+import org.scalatest.{WordSpecLike, Matchers}
+import akka.testkit.ImplicitSender
+
 
 
 class ScheduledDispatcherActorSpec
