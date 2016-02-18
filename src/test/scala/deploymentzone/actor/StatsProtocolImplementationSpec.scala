@@ -1,8 +1,6 @@
 package deploymentzone.actor
-package unit
 
 import scala.concurrent.duration._
-import deploymentzone.actor._
 import org.scalatest.FunSpecLike
 import akka.testkit.ImplicitSender
 import akka.actor.{Props, ActorRef, Actor}

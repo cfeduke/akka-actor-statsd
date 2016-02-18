@@ -1,6 +1,5 @@
-package deploymentzone.actor.unit
+package deploymentzone.actor
 
-import deploymentzone.actor._
 import org.scalatest.{FunSpec, Matchers}
 import com.typesafe.config.{ConfigFactory, ConfigException}
 

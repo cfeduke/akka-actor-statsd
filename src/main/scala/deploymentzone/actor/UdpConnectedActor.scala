@@ -25,10 +25,10 @@ private[actor] class UdpConnectedActor(
   def receive = {
     case Connect =>
       IO(UdpConnected) ! Connect(self, remoteAddress)
-      context.become(starting(sender()))
+      context.become(connecting(sender()))
   }
 
-  def starting(initiator: ActorRef): Receive = {
+  def connecting(initiator: ActorRef): Receive = {
     case Connected =>
       context.become(ready(sender()))
       initiator ! Connected

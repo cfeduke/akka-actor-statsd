@@ -1,4 +1,4 @@
-package deploymentzone.actor.integration
+package deploymentzone.actor
 
 import scala.concurrent.duration._
 import com.typesafe.config.ConfigFactory
@@ -7,11 +7,10 @@ import akka.io.Udp
 import akka.actor.Terminated
 import akka.testkit.{TestProbe, ImplicitSender}
 import org.scalatest.{WordSpecLike, Matchers}
-import deploymentzone.actor._
 
 
 class StatsActorSpec
-  extends TestKit("stats-actor-integration-spec")
+  extends TestKit("stats-actor-spec")
   with WordSpecLike
   with Matchers
   with ImplicitSender {

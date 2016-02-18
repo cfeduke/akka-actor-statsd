@@ -98,21 +98,13 @@ Stats.withTimer("code.execution.time) {
 Releases are hosted on Maven Central.
 
 ```scala
-libraryDependencies ++= Seq("com.deploymentzone" %% "akka-actor-statsd" % "0.1.2")
+libraryDependencies ++= Seq("com.deploymentzone" %% "akka-actor-statsd" % "0.1.3")
 ```
 
 Snapshots are hosted on The New Motion public repository.
 
 ```scala
 resolvers += "The New Motion Public Repo" at "http://nexus.thenewmotion.com/content/groups/public/"
-```
-
-This library requires [Akka](http://akka.io) 2.3 to get around a bug with 
-[Stash and TestActorRef](http://stackoverflow.com/questions/21725473/creating-a-testactorref-results-in-nullpointerexception/22432436#22432436) for test purposes only. It is compatible with Akka 2.2.3. If you need to keep a dependency on Akka 2.2.3 (for use with [scala-redis-nb](https://github.com/debasishg/scala-redis-nb/tree/master) for example) be sure to use an exclusion rule:
-
-```scala
-libraryDependencies ++= Seq("com.deploymentzone" %% "akka-actor-statsd" % "0.1.2"
-  excludeAll ExclusionRule("com.typesafe.akka"))
 ```
 
 ## Explanation

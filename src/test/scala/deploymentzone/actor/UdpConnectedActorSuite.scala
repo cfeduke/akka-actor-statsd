@@ -1,10 +1,10 @@
-package deploymentzone.actor.integration
+package deploymentzone.actor
 
-import deploymentzone.actor.{Config, UdpListenerActor, TestKit, UdpConnectedActor}
 import org.scalatest.FunSuiteLike
 import akka.testkit.ImplicitSender
 import java.net.InetSocketAddress
 import akka.io.{UdpConnected, Udp}
+
 
 class UdpConnectedActorSuite
   extends TestKit("udp-connected-actor-suite")
