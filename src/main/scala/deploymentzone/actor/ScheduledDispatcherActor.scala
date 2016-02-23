@@ -2,20 +2,21 @@ package deploymentzone.actor
 
 import scala.concurrent.duration._
 import akka.actor._
+import akka.io.UdpConnected
 import deploymentzone.actor.domain.MultiMetricQueue
-import java.util.concurrent.TimeUnit
+
 
 private[actor] class ScheduledDispatcherActor(
   config: Config,
-  connection: ActorRef
+  newConnection: Props
 ) extends Actor
   with ActorLogging {
 
   import ScheduledDispatcherActor._
-  import context.system
 
-  val packetSize = config.packetSize
-  val transmitInterval = config.transmitInterval
+  import config.{packetSize, transmitInterval, enableMultiMetric}
+  import context.system
+  import context.dispatcher
 
   require(packetSize > 0, PACKET_SIZE_NEGATIVE_ZERO_MESSAGE)
   require(transmitInterval.toMillis > 0, TRANSMIT_INTERVAL_NEGATIVE_ZERO_MESSAGE)
@@ -28,17 +29,18 @@ private[actor] class ScheduledDispatcherActor(
   }
 
   val mmq = MultiMetricQueue(packetSize)(system)
+  val connection = context.actorOf(newConnection, "underlying-udp-connection")
 
-  val recurringTransmit:Cancellable = if (config.enableMultiMetric)
-                                        system.scheduler.schedule(transmitInterval, transmitInterval, self, Transmit)(system.dispatcher, self)
-                                      else // bogus scheduler you can only cancel
-                                        new Cancellable {override def isCancelled: Boolean = true; override def cancel(): Boolean = true }
+  val recurringTransmit =
+    if (enableMultiMetric)
+      system.scheduler.schedule(transmitInterval, transmitInterval, self, Transmit)
+    else
+      noopSchedule
 
   def receive = {
-    case msg: String => {
-      if (config.enableMultiMetric) mmq.enqueue(msg)
+    case msg: String =>
+      if (enableMultiMetric) mmq.enqueue(msg)
       else connection ! msg
-    }
     case Transmit =>
       mmq.payload().foreach(connection ! _)
   }
@@ -54,5 +56,11 @@ private[actor] object ScheduledDispatcherActor {
   val PACKET_SIZE_NEGATIVE_ZERO_MESSAGE = "packetSize cannot be negative or 0"
   val TRANSMIT_INTERVAL_NEGATIVE_ZERO_MESSAGE = "transmitInterval cannot be negative or 0"
 
-  def props(config: Config, connection: ActorRef): Props = Props(new ScheduledDispatcherActor(config, connection))
+  private val noopSchedule = new Cancellable {
+    def isCancelled = true
+    def cancel() = true
+  }
+
+  def props(config: Config, connection: Props) =
+    Props(new ScheduledDispatcherActor(config, connection))
 }

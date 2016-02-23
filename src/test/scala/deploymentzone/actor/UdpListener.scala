@@ -5,28 +5,28 @@ import akka.io.{Udp, IO}
 import java.net.InetSocketAddress
 
 /* originated from: http://doc.akka.io/docs/akka/snapshot/scala/io-udp.html */
-class UdpListenerActor(nextActor: ActorRef)
+class UdpListener(nextActor: ActorRef, port: Int)
   extends Actor
   with ActorLogging {
   import context.system
-  IO(Udp) ! Udp.Bind(self, new InetSocketAddress("localhost", 0))
+  IO(Udp) ! Udp.Bind(self, new InetSocketAddress("localhost", port))
 
   def receive = {
     case Udp.Bound(local) =>
-      context.become(ready(sender))
+      context.become(ready(sender()))
       nextActor ! local
   }
 
   def ready(socket: ActorRef): Receive = {
     case Udp.Received(data, remote) =>
-      log.debug("received data length {}", data.length)
-      val str = data.decodeString("utf-8")
+      val str = data.utf8String
+      log.debug("received data {}", str)
       nextActor ! str
     case Udp.Unbind  => socket ! Udp.Unbind
     case Udp.Unbound => context.stop(self)
   }
 }
 
-object UdpListenerActor {
-  def props(nextActor: ActorRef) = Props(new UdpListenerActor(nextActor))
+object UdpListener {
+  def props(nextActor: ActorRef, port: Int = 0) = Props(new UdpListener(nextActor, port))
 }

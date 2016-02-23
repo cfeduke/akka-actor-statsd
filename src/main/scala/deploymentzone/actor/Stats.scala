@@ -1,11 +1,11 @@
 package deploymentzone.actor
 
+import scala.concurrent.duration.Duration
 import akka.actor._
 import deploymentzone.actor.validation.StatsDBucketValidator
 import java.net.InetSocketAddress
 import deploymentzone.actor.domain.NamespaceTransformer
 
-import scala.concurrent.duration.Duration
 
 /**
  * An actor which sends counters to a StatsD instance via connected UDP.
@@ -14,30 +14,38 @@ import scala.concurrent.duration.Duration
  * @param _config optional configuration settings; when not specified a default configuration is created based on what
  *                ConfigFactory loads
  */
-class StatsActor(
-  val config: Config
+class Stats(
+  val config: Config,
+  connectionProps: Stats.ConnectionProps
 ) extends Actor
-  with StatsProtocolImplementation {
+  with ActorLogging {
 
   require(StatsDBucketValidator(config.namespace),
     s"""reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS})"""+
     """may not be used in namespaces and namespaces may not start or end"""+
     """with a period (".")""")
 
+  val connection = context.actorOf(connectionProps, "statsd-connection")
+
   val namespaceTx = NamespaceTransformer(config.namespace)
-  override protected def process(msg: Metric[_]) = namespaceTx(msg)
 
-  override protected lazy val connection =
-    context.actorOf(UdpConnectedActor.props(config.address), "statsd-udp-connection")
+  def process(msg: Metric[_]) = namespaceTx(msg)
 
+  def receive = {
+    case msg: Metric[_] => connection ! process(msg)
+  }
 }
 
-object StatsActor {
-  def props(cfg: Config = Config()): Props =
-    Props(new StatsActor(cfg))
-}
 
 object Stats {
+  type ConnectionProps = Props
+
+  def bufferedConnection(cfg: Config): ConnectionProps =
+    ScheduledDispatcherActor.props(cfg, Connection.props(cfg.address))
+
+  def props(cfg: Config = Config(), conn: Config => ConnectionProps = bufferedConnection): Props =
+    Props(new Stats(cfg, conn(cfg)))
+
   /**
    * Increments bucket by 1
    * @param bucket the bucket to increment by 1

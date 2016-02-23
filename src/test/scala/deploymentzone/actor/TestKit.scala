@@ -38,6 +38,16 @@ abstract class TestKit(actorSystemName: String)
     def props(supervisedChildProps: Props)(implicit testActor: ActorRef): Props =
       Props(new ExceptionSieve(testActor, supervisedChildProps))
   }
+
+  class Forwarder private() extends Actor {
+    def receive = {
+      case any => testActor forward any
+    }
+  }
+
+  object Forwarder {
+    def props = Props(new Forwarder())
+  }
 }
 
 
