@@ -19,7 +19,7 @@ private[actor] object SingleAddressConnection {
   * instead of verification on every message sent,
   * when datagrams can be sent/received to/from any destination.
   *
-  * Based on example from http://doc.akka.io/docs/akka/2.4.1/scala/io-udp.html
+  * Based on example from http://doc.akka.io/docs/akka/2.4.2/scala/io-udp.html
   */
 private[actor] class SingleAddressConnection(
   remoteAddress: InetSocketAddress
@@ -50,6 +50,8 @@ private[actor] class SingleAddressConnection(
       println(s"UDP deliver $msg")
       socket ! Send(ByteString(msg))
     case CommandFailed(Send(payload, _)) =>
-      log warning s"Unable to deliver message: ${payload.utf8String} to $remoteAddress"
+      val msg = payload.utf8String
+      log warning s"Unable to deliver message: $msg to $remoteAddress"
+      DeliveryFailed(msg)
   }
 }

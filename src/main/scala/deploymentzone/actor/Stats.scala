@@ -1,28 +1,25 @@
-package deploymentzone.actor
+package deploymentzone
+package actor
 
 import scala.concurrent.duration.Duration
 import akka.actor._
-import deploymentzone.actor.validation.StatsDBucketValidator
 import java.net.InetSocketAddress
-import deploymentzone.actor.domain.NamespaceTransformer
+import validation.StatsDBucketValidator
+import domain.NamespaceTransformer
 
 
 /**
- * An actor which sends counters to a StatsD instance via connected UDP.
- * @param address hostname and port (UDP) of the StatsD instance
- * @param namespace optional namespace to prefix all counter messages with
- * @param _config optional configuration settings; when not specified a default configuration is created based on what
- *                ConfigFactory loads
+ * Collects and sends counters to a StatsD instance.
  */
 class Stats(
   val config: Config,
-  connectionProps: Stats.ConnectionProps
+  connectionProps: Props
 ) extends Actor
   with ActorLogging {
 
   require(StatsDBucketValidator(config.namespace),
-    s"""reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS})"""+
-    """may not be used in namespaces and namespaces may not start or end"""+
+    s"Reserved characters (${StatsDBucketValidator.ReservedCharacters})"+
+    "may not be used in namespaces and namespaces may not start or end"+
     """with a period (".")""")
 
   val connection = context.actorOf(connectionProps, "statsd-connection")
@@ -38,19 +35,17 @@ class Stats(
 
 
 object Stats {
-  type ConnectionProps = Props
+  def bufferedConnection(cfg: Config): Props =
+    ScheduledDispatcher.props(cfg, Connection.props(cfg.address))
 
-  def bufferedConnection(cfg: Config): ConnectionProps =
-    ScheduledDispatcherActor.props(cfg, Connection.props(cfg.address))
-
-  def props(cfg: Config = Config(), conn: Config => ConnectionProps = bufferedConnection): Props =
+  def props(cfg: Config = Config(), conn: Config => Props = bufferedConnection): Props =
     Props(new Stats(cfg, conn(cfg)))
 
   /**
    * Increments bucket by 1
    * @param bucket the bucket to increment by 1
    * @param sampleRate sampleRate defaults to 1.0
-   * @param statsActor Implicitly scoped [[StatsActor]]
+   * @param statsActor Implicitly scoped [[Stats]]
    */
   def increment(bucket:String, sampleRate:Double = 1.0)(implicit statsActor: ActorRef): Unit = {
     statsActor ! Count(bucket, sampleRate)(1)
@@ -60,7 +55,7 @@ object Stats {
    * Decrements bucket by 1
    * @param bucket the bucket to decrement by 1
    * @param sampleRate sampleRate defaults to 1.0
-   * @param statsActor Implicitly scoped [[StatsActor]]
+   * @param statsActor Implicitly scoped [[Stats]]
    */
   def decrement(bucket:String, sampleRate:Double = 1.0)(implicit statsActor: ActorRef): Unit = {
     statsActor ! Count(bucket, sampleRate)(-1)
@@ -71,7 +66,7 @@ object Stats {
    * @param bucket the bucket to count
    * @param sampleRate sampleRate defaults to 1.0
    * @param count the number by which to increase/decrease the bucket
-   * @param statsActor Implicitly scoped [[StatsActor]]
+   * @param statsActor Implicitly scoped [[Stats]]
    * @return
    */
   def count(bucket:String, sampleRate:Double = 1.0)(count:Int)(implicit statsActor: ActorRef): Unit = {
@@ -83,7 +78,7 @@ object Stats {
    * @param bucket the bucket to set
    * @param sampleRate sampleRate defaults to 1.0
    * @param value the value to set the bucket too
-   * @param statsActor Implicitly scoped [[StatsActor]]
+   * @param statsActor Implicitly scoped [[Stats]]
    */
   def gauge(bucket:String, sampleRate:Double = 1.0)(value:Long)(implicit statsActor: ActorRef): Unit = {
     statsActor ! gauge(bucket, sampleRate)(value)
@@ -94,7 +89,7 @@ object Stats {
    * @param bucket the bucket to set
    * @param sampleRate sampleRate defaults to 1.0
    * @param value the value to increase/decrease the bucket by
-   * @param statsActor Implicitly scoped [[StatsActor]]
+   * @param statsActor Implicitly scoped [[Stats]]
    */
   def gaugeDelta(bucket:String, sampleRate:Double = 1.0)(value:Long)(implicit statsActor: ActorRef): Unit = {
     value match {
@@ -108,7 +103,7 @@ object Stats {
    * @param bucket the bucket to set
    * @param sampleRate sampleRate defaults to 1.0
    * @param value the value to set the bucket to
-   * @param statsActor Implicitly scoped [[StatsActor]]
+   * @param statsActor Implicitly scoped [[Stats]]
    */
   def set(bucket:String, sampleRate:Double = 1.0)(value:Long)(implicit statsActor:ActorRef): Unit = {
     statsActor ! Set(bucket, sampleRate)(value)
@@ -119,7 +114,7 @@ object Stats {
    * @param bucket the bucket to set the time in
    * @param sampleRate sampleRate defaults to 1.0
    * @param value the duration, will be converted to milliseconds
-   * @param statsActor Implicitly scoped [[StatsActor]]
+   * @param statsActor Implicitly scoped [[Stats]]
    */
   def time(bucket:String, sampleRate:Double = 1.0)(value:Duration)(implicit statsActor: ActorRef): Unit = {
     statsActor ! Timing(bucket, sampleRate)(value)
@@ -130,7 +125,7 @@ object Stats {
    * @param bucket the bucket to set the time in ms
    * @param sampleRate sampleRate defaults to 1.0
    * @param timed code block to time
-   * @param statsActor Implicitly scoped [[StatsActor]]
+   * @param statsActor Implicitly scoped [[Stats]]
    * @tparam T return type of executed code block
    */
   def withTimer[T](bucket:String, sampleRate:Double = 1.0)(timed : => T)(implicit statsActor: ActorRef): T = {
@@ -148,7 +143,7 @@ object Stats {
    * @param bucket the bucket to set the time in ms
    * @param sampleRate sampleRate defaults to 1.0
    * @param timed code block to time
-   * @param statsActor Implicitly scoped [[StatsActor]]
+   * @param statsActor Implicitly scoped [[Stats]]
    * @tparam T return type of executed code block
    */
   def withCountAndTimer[T](bucket:String, sampleRate:Double = 1.0)(timed : => T)(implicit statsActor: ActorRef): T = {

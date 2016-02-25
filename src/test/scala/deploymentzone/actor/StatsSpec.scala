@@ -1,4 +1,5 @@
-package deploymentzone.actor
+package deploymentzone
+package actor
 
 import scala.concurrent.duration._
 import com.typesafe.config.ConfigFactory

@@ -23,8 +23,5 @@ class StatsDBucketValidatorSpec
     "return false if string ends with a period" in {
       StatsDBucketValidator("counter.") should be(false)
     }
-    "return true if string is null" in {
-      StatsDBucketValidator(null) should be(true)
-    }
   }
 }

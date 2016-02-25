@@ -8,7 +8,7 @@ abstract class Metric[+T](val bucket: String, val samplingRate: Double)(val valu
 
   require(bucket != null)
   require(StatsDBucketValidator(bucket),
-    s"""reserved characters (${StatsDBucketValidator.RESERVED_CHARACTERS}) may not be used in buckets and buckets may not start or end with a period (".")""")
+    s"""reserved characters (${StatsDBucketValidator.ReservedCharacters}) may not be used in buckets and buckets may not start or end with a period (".")""")
 
   override def toString =
     samplingRate match {

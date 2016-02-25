@@ -1,30 +1,30 @@
-package deploymentzone.actor
+package deploymentzone
+package actor
 
 import scala.concurrent.duration._
 import akka.actor._
-import akka.io.UdpConnected
-import deploymentzone.actor.domain.MultiMetricQueue
+import domain.MultiMetricQueue
 
 
-private[actor] class ScheduledDispatcherActor(
+private[actor] class ScheduledDispatcher(
   config: Config,
   newConnection: Props
 ) extends Actor
   with ActorLogging {
 
-  import ScheduledDispatcherActor._
+  import ScheduledDispatcher._
 
   import config.{packetSize, transmitInterval, enableMultiMetric}
   import context.system
   import context.dispatcher
 
-  require(packetSize > 0, PACKET_SIZE_NEGATIVE_ZERO_MESSAGE)
-  require(transmitInterval.toMillis > 0, TRANSMIT_INTERVAL_NEGATIVE_ZERO_MESSAGE)
+  require(packetSize > 0, IllegalPacketSize)
+  require(transmitInterval.toMillis > 0, IllegalTransmitInterval)
 
   log.debug(s"packetSize: $packetSize")
   log.debug(s"transmitInterval (millis): ${transmitInterval.toMillis}")
 
-  if (transmitInterval.toMillis > 1.second.toMillis) {
+  if (transmitInterval > 1.second) {
     log.warning("Transmit interval set to a large value of {} milliseconds", transmitInterval)
   }
 
@@ -52,9 +52,9 @@ private[actor] class ScheduledDispatcherActor(
   private object Transmit
 }
 
-private[actor] object ScheduledDispatcherActor {
-  val PACKET_SIZE_NEGATIVE_ZERO_MESSAGE = "packetSize cannot be negative or 0"
-  val TRANSMIT_INTERVAL_NEGATIVE_ZERO_MESSAGE = "transmitInterval cannot be negative or 0"
+private[actor] object ScheduledDispatcher {
+  val IllegalPacketSize = "Packet size must be positive number"
+  val IllegalTransmitInterval = "Transmit interval must be positive number"
 
   private val noopSchedule = new Cancellable {
     def isCancelled = true
@@ -62,5 +62,5 @@ private[actor] object ScheduledDispatcherActor {
   }
 
   def props(config: Config, connection: Props) =
-    Props(new ScheduledDispatcherActor(config, connection))
+    Props(new ScheduledDispatcher(config, connection))
 }

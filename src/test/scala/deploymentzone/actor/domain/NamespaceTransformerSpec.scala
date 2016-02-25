@@ -15,11 +15,6 @@ class NamespaceTransformerSpec
         NamespaceTransformer("")(counter) should be (counter.toString)
       }
     }
-    "given a null argument" should {
-      "return only the bucket name" in new NamespaceTest {
-        NamespaceTransformer(null)(counter) should be (counter.toString)
-      }
-    }
     "given a valid namespace" should {
       "return the namespace.bucket" in new NamespaceTest {
         NamespaceTransformer("x.y")(counter) should be (s"x.y.$counter")

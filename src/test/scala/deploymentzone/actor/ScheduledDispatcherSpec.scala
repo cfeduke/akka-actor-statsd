@@ -1,53 +1,53 @@
-package deploymentzone.actor
+package deploymentzone
+package actor
 
 import scala.concurrent.duration._
 import org.scalatest.{WordSpecLike, Matchers}
 import akka.testkit.ImplicitSender
 import akka.actor._
 import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
-import akka.actor._
-
-import org.scalatest.{WordSpecLike, Matchers}
-import akka.testkit.ImplicitSender
 
 
-
-class ScheduledDispatcherActorSpec
-  extends TestKit("scheduled-dispatcher-actor-spec")
+class ScheduledDispatcherSpec
+  extends TestKit("scheduled-dispatcher-spec")
   with WordSpecLike
   with Matchers
   with ImplicitSender {
 
-  "ScheduledDispatcherActor" when {
+  "ScheduledDispatcher" when {
     "initialized with a negative packetSize" should {
       "throw an exception" in new ExceptionCaptureEnvironment(-100, 1000) {
         val ex = expectMsgClass(classOf[ActorInitializationException])
-        ex.getCause.getMessage should be ("requirement failed: " + ScheduledDispatcherActor.PACKET_SIZE_NEGATIVE_ZERO_MESSAGE)
+        ex.getCause.getMessage should be (
+          s"requirement failed: ${ScheduledDispatcher.IllegalPacketSize}")
       }
     }
     "initialized with a zero packetSize" should {
       "throw an exception" in new ExceptionCaptureEnvironment(0, 1000) {
         val ex = expectMsgClass(classOf[ActorInitializationException])
-        ex.getCause.getMessage should be ("requirement failed: " + ScheduledDispatcherActor.PACKET_SIZE_NEGATIVE_ZERO_MESSAGE)
+        ex.getCause.getMessage should be (
+          s"requirement failed: ${ScheduledDispatcher.IllegalPacketSize}")
       }
     }
     "initialized with a negative transmitInterval" should {
       "throw an exception" in new ExceptionCaptureEnvironment(100, -1000) {
         val ex = expectMsgClass(classOf[ActorInitializationException])
-        ex.getCause.getMessage should be ("requirement failed: " + ScheduledDispatcherActor.TRANSMIT_INTERVAL_NEGATIVE_ZERO_MESSAGE)
+        ex.getCause.getMessage should be (
+          s"requirement failed: ${ScheduledDispatcher.IllegalTransmitInterval}")
       }
     }
     "initialized with a zero transmitInterval" should {
       "throw an exception" in new ExceptionCaptureEnvironment(100, 0) {
         val ex = expectMsgClass(classOf[ActorInitializationException])
-        ex.getCause.getMessage should be ("requirement failed: " + ScheduledDispatcherActor.TRANSMIT_INTERVAL_NEGATIVE_ZERO_MESSAGE)
+        ex.getCause.getMessage should be (
+          s"requirement failed: ${ScheduledDispatcher.IllegalTransmitInterval}")
       }
     }
 
     "given several messages" when {
       "all messages are queued before the transmitInterval" should {
         "combine all the messages" in new Environment(250) {
-          val scheduled = system.actorOf(ScheduledDispatcherActor.props(config, forwardTo(testActor)))
+          val scheduled = system.actorOf(ScheduledDispatcher.props(config, forwardTo(testActor)))
           Seq("one", "two", "three", "four").foreach(msg => scheduled ! msg)
           expectMsg(300.milliseconds,
             """one
@@ -58,7 +58,7 @@ class ScheduledDispatcherActorSpec
       }
       "some messages are staggered after the transmitInterval" should {
         "receive one batch of messages and then another" in new Environment(50) {
-          val scheduled = system.actorOf(ScheduledDispatcherActor.props(config, forwardTo(testActor)))
+          val scheduled = system.actorOf(ScheduledDispatcher.props(config, forwardTo(testActor)))
           implicit val executionContext = system.dispatcher
           system.scheduler.scheduleOnce(100.milliseconds, scheduled, "three")
           Seq("one", "two").foreach(msg => scheduled ! msg)
@@ -74,7 +74,7 @@ class ScheduledDispatcherActorSpec
   private class Environment(transmitInterval: Long) {
     def config = Config(
       ConfigFactory
-        .load("ScheduledDispatcherActorSpec.conf")
+        .load("ScheduledDispatcherSpec.conf")
         .withValue(
           "deploymentzone.akka-actor-statsd.transmit-interval",
           ConfigValueFactory.fromAnyRef(transmitInterval)))
@@ -93,7 +93,7 @@ class ScheduledDispatcherActorSpec
 
     override def config = super.config.copy(packetSize = packetSize)
 
-    val props = ScheduledDispatcherActor.props(config, forwardTo(system.deadLetters))
+    val props = ScheduledDispatcher.props(config, forwardTo(system.deadLetters))
     val failureParent = system.actorOf(ExceptionSieve.props(testActor, props))
   }
 

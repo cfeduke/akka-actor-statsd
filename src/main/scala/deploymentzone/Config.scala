@@ -1,11 +1,12 @@
-package deploymentzone.actor
+package deploymentzone
 
 import net.ceedubs.ficus.Ficus._
 import java.net.InetSocketAddress
 import com.typesafe.config.{Config => TsConfig, _}
 import scala.concurrent.duration._
 
-case class Config private[actor](
+
+case class Config(
   address: InetSocketAddress,
   namespace: String,
   packetSize: Int,
@@ -13,7 +14,7 @@ case class Config private[actor](
   enableMultiMetric: Boolean
 )
 
-private[actor] object Config {
+object Config {
   val path = "deploymentzone.akka-actor-statsd"
 
   def apply(underlying: TsConfig = ConfigFactory.load): Config = {
@@ -26,7 +27,7 @@ private[actor] object Config {
       namespace = cfg.as[String]("namespace"),
       packetSize = cfg.as[Int]("packet-size"),
       transmitInterval = cfg.as[FiniteDuration]("transmit-interval"),
-      enableMultiMetric = cfg.as[Boolean]("enable-multimetric")
+      enableMultiMetric = cfg.as[Boolean]("enable-multi-metric")
     )
   }
 }
