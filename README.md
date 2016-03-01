@@ -95,17 +95,14 @@ Stats.withTimer("code.execution.time") {
 
 ## Installation
 
-Releases are hosted on Maven Central.
-
-```scala
-libraryDependencies += "com.thenewmotion" %% "akka-actor-statsd" % "0.1.3"
-```
-
-Snapshots are hosted on The New Motion public repository.
+Releases and snapshots are hosted on The New Motion public repository. To add dependency to your project use following snippet:
 
 ```scala
 resolvers += "The New Motion Public Repo" at "http://nexus.thenewmotion.com/content/groups/public/"
+
+libraryDependencies += "com.thenewmotion" %% "akka-statsd-core" % "1.0.0"
 ```
+
 
 ## Explanation
 
@@ -138,8 +135,7 @@ You may use `deploymentzone.Config`, constructed manually or from provided Types
 Here are the default settings, with the exception of hostname, which is a required setting:
 
 ```
-deploymentzone {
-    akka-actor-statsd {
+akka.statsd {
         # hostname = "required"
         port = 8125
         namespace = ""

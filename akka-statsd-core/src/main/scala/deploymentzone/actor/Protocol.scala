@@ -82,6 +82,15 @@ class Timing(bucket: String, samplingRate: Double = 1.0)(value: Long)
   override val symbol = Timing.SYMBOL
 }
 
+object Timing {
+  import scala.concurrent.duration.Duration
+
+  val SYMBOL = "ms"
+
+  def apply(bucket: String, samplingRate: Double = 1.0)(value: Duration) =
+    new Timing(bucket, samplingRate)(value.toMillis)
+}
+
 class Set(bucket: String, samplingRate: Double = 1.0)(value: Long)
   extends Metric(bucket, samplingRate)(value) {
 
@@ -95,11 +104,3 @@ object Set {
     new Set(bucket, samplingRate)(value)
 }
 
-object Timing {
-  import scala.concurrent.duration.Duration
-
-  val SYMBOL = "ms"
-
-  def apply(bucket: String, samplingRate: Double = 1.0)(value: Duration) =
-    new Timing(bucket, samplingRate)(value.toMillis)
-}

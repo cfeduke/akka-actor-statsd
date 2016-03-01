@@ -76,7 +76,7 @@ class ScheduledDispatcherSpec
       ConfigFactory
         .load("ScheduledDispatcherSpec.conf")
         .withValue(
-          "deploymentzone.akka-actor-statsd.transmit-interval",
+          "akka.statsd.transmit-interval",
           ConfigValueFactory.fromAnyRef(transmitInterval)))
 
     class Forwarder(recipient: ActorRef) extends Actor {
