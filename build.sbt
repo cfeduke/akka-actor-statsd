@@ -7,6 +7,41 @@ val statsdSettings = Seq(
   }
 )
 
+val `akka-statsd-core` = project
+  .enablePlugins(OssLibPlugin)
+  .settings(
+    statsdSettings,
+    libraryDependencies ++= Dependencies(scalaVersion.value).core
+  )
+
+val `akka-statsd-spray-server` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`akka-statsd-core`)
+  .settings(
+    statsdSettings,
+    libraryDependencies ++= Dependencies(scalaVersion.value).sprayServer
+  )
+
+val `akka-statsd-spray-client` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`akka-statsd-core`)
+  .settings(
+    statsdSettings,
+    libraryDependencies ++= Dependencies(scalaVersion.value).sprayClient
+  )
+
+val `akka-statsd` =
+  project.in(file("."))
+  .enablePlugins(OssLibPlugin)
+  .aggregate(
+    `akka-statsd-core`,
+    `akka-statsd-spray-server`,
+    `akka-statsd-spray-client`)
+  .settings(
+    publish := {}
+  )
+
+
 def Dependencies(scalaVersion: String) = new {
   def akka(lib: String) = "com.typesafe.akka" %% s"akka-$lib" % {
     scalaVersion match {
@@ -24,17 +59,22 @@ def Dependencies(scalaVersion: String) = new {
     }
   }
 
-  val statsdCore = Seq(
+  val core = Seq(
     akka("actor"),
     akka("slf4j"),
     ficus,
     "ch.qos.logback" % "logback-classic" % "1.1.6"
   )
 
-  val statsdSpray = statsdCore ++ Seq(
+  val sprayServer = core ++ Seq(
     spray("http"),
     spray("routing-shapeless2"),
     spray("testkit") % "test"
+  )
+
+  val sprayClient = core ++ Seq(
+    spray("http"),
+    spray("client")
   )
 
   val commonTest = Seq(
@@ -42,26 +82,3 @@ def Dependencies(scalaVersion: String) = new {
     "org.scalatest" %% "scalatest" % "2.2.6"
   ).map(_ % "test")
 }
-
-val `akka-statsd-core` = project
-  .enablePlugins(OssLibPlugin)
-  .settings(
-    statsdSettings,
-    libraryDependencies ++= Dependencies(scalaVersion.value).statsdCore
-  )
-
-val `akka-statsd-spray` = project
-  .enablePlugins(OssLibPlugin)
-  .dependsOn(`akka-statsd-core`)
-  .settings(
-    statsdSettings,
-    libraryDependencies ++= Dependencies(scalaVersion.value).statsdSpray
-  )
-
-val `akka-statsd` =
-  project.in(file("."))
-  .enablePlugins(OssLibPlugin)
-  .aggregate(`akka-statsd-core`, `akka-statsd-spray`)
-  .settings(
-    publish := {}
-  )
