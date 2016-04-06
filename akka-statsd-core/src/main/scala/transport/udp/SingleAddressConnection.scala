@@ -47,7 +47,7 @@ private[transport] class SingleAddressConnection(
 
   def working(initiator: ActorRef, socket: ActorRef): Receive = {
     case Deliver(msg) =>
-      println(s"UDP deliver $msg")
+      log debug s"UDP delivery of stats message $msg"
       socket ! Send(ByteString(msg))
     case CommandFailed(Send(payload, _)) =>
       val msg = payload.utf8String
