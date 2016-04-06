@@ -45,7 +45,7 @@ val `akka-statsd` =
 def Dependencies(scalaVersion: String) = new {
   def akka(lib: String) = "com.typesafe.akka" %% s"akka-$lib" % {
     scalaVersion match {
-      case tnm.ScalaVersion.curr => "2.4.2"
+      case tnm.ScalaVersion.curr => "2.4.3"
       case tnm.ScalaVersion.prev => "2.3.14"
     }
   }
