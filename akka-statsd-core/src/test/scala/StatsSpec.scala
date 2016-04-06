@@ -6,7 +6,7 @@ import com.typesafe.config.ConfigFactory
 import java.net.InetSocketAddress
 import akka.io.Udp
 import akka.actor._
-import akka.testkit.{TestProbe, ImplicitSender}
+import akka.testkit.ImplicitSender
 import org.scalatest.{WordSpecLike, Matchers}
 
 

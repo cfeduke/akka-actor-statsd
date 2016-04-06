@@ -1,8 +1,6 @@
 package akka.statsd.spray.server
 
-import com.typesafe.config.Config
 import akka.actor.{ActorSystem, ActorRef}
-import scala.util.matching.Regex
 import spray._, http._, routing._, directives._, BasicDirectives._
 import akka.statsd.{Config => StatsConfig, _}
 

@@ -1,7 +1,6 @@
 package akka.statsd
 package transport
 
-import java.net.InetSocketAddress
 import akka.actor._
 
 import org.scalatest._

@@ -11,7 +11,6 @@ private[statsd] class Connection(
   with Stash
   with ActorLogging {
 
-  import context.system
   import Connection._
 
   var tolerateFailures = tolerateFailuresUpTo

@@ -2,7 +2,6 @@ package akka.statsd
 
 import scala.concurrent.duration.Duration
 import akka.actor._
-import java.net.InetSocketAddress
 import transport._
 
 

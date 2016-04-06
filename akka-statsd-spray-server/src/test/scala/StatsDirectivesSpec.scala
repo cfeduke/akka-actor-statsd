@@ -4,8 +4,7 @@ import scala.concurrent.duration._
 import org.scalatest._
 import akka.testkit._
 import com.typesafe.config.ConfigFactory
-import akka.actor.{ActorRef, ActorSystem, ActorRefFactory}
-import spray.http.StatusCodes
+import akka.actor.ActorSystem
 import spray.routing.HttpService
 import spray.testkit.ScalatestRouteTest
 import akka.statsd._

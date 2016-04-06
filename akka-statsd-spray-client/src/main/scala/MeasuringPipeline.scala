@@ -7,7 +7,7 @@ import scala.util.{Success, Failure}
 import akka.actor.ActorRef
 import spray.http._
 import spray.httpx.{RequestBuilding, ResponseTransformation}
-import spray.client.pipelining.{sendReceive => spraySendReceive, _}
+import spray.client.pipelining._
 import akka.statsd.{Config => StatsConfig, _}
 
 
