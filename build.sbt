@@ -63,7 +63,7 @@ def Dependencies(scalaVersion: String) = new {
     akka("actor"),
     akka("slf4j"),
     ficus,
-    "ch.qos.logback" % "logback-classic" % "1.1.6"
+    "ch.qos.logback" % "logback-classic" % "1.1.7"
   )
 
   val sprayServer = core ++ Seq(
