@@ -74,7 +74,7 @@ object Stats {
    * @param statsActor Implicitly scoped [[Stats]]
    */
   def gauge(bucket: Bucket, sampleRate: Double = 1.0)(value:Long)(implicit statsActor: ActorRef): Unit = {
-    statsActor ! gauge(bucket, sampleRate)(value)
+    statsActor ! Gauge(bucket, sampleRate)(value)
   }
 
   /**
