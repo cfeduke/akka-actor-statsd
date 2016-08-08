@@ -1,11 +1,20 @@
 # akka-actor-statsd
+[![Build Status](https://travis-ci.org/thenewmotion/akka-actor-statsd.svg?branch=master)](https://travis-ci.org/thenewmotion/akka-actor-statsd)
 
-A dead simple [statsd] client written in Scala as an actor using the [akka] framework.
+A dead simple [statsd] client written in Scala as group of actors using the [akka] framework.
 
-Currently at 0.4 snapshot. We're using this software in a non-production setting
-at [TrafficLand](http://www.trafficland.com).
+## Naming conventions
 
-0.4 is compiled with Scala 2.10.4 against Akka 2.3.4 which works with Play 2.3.4.
+For The New Motion applications use the following naming conventions:
+
+A 'bucket' consists of a namespace part and a hierarchy part
+
+the namespace is set by adding `[environment].[application]` in the application.conf
+
+environment can be `test`, `sandbox`, `prod` and even `unittest`
+the application a one or two word description of the application separated by dashes
+
+Think about the hierarchy you want to use inside your application, this will be of great influence on the representation side
 
 ## Examples
 
@@ -15,12 +24,12 @@ class Counter(val counterName: String) extends Actor {
   var minutes = 0L
   var hours = 0L
 
-  lazy val stats = context.actorOf(StatsActor.props("stats.someserver.com", s"prototype.$counterName"))
-  val secondsCounter = Increment("seconds")
-  val minutesCounter = Increment("minutes")
-  val hoursCounter = Increment("hours")
-  val gaugeMetric = Gauge("shotgun")(12L)
-  val timingMetric = Timing("tempo")(5.seconds)
+  lazy val stats = context.actorOf(Stats.props())
+  val secondsCounter = Increment(Bucket("seconds"))
+  val minutesCounter = Increment(Bucket("minutes"))
+  val hoursCounter = Increment(Bucket("hours"))
+  val gaugeMetric = Gauge(Bucket("shotgun"))(12L)
+  val timingMetric = Timing(Bucket("tempo"))(5.seconds)
 
   def receive = {
     case IncrementSecond =>
@@ -34,27 +43,27 @@ class Counter(val counterName: String) extends Actor {
     case IncrementHour =>
       hours += 1
       statsd ! hoursCounter
-    case Status => sender ! (seconds, minutes, hours)
+    case Status => 
+      sender ! (seconds, minutes, hours)
   }
 }
 ```
 
-The counter messages themselves are curried for convience:
+The counter messages themselves are curried for convenience:
 
 ```scala
-val interval = Timing("interval")
+val interval = Timing(Bucket("interval"))
 stats ! interval(3.seconds)
 stats ! interval(2.seconds)
 stats ! interval(1.second)
 ```
 
-If a `StatsActor` instance is assigned a namespace then all counters sent from that 
-actor have the namespace applied to the counter:
+If a `Stats` instance is assigned a namespace(via the Config object) then all counters sent from that actor have the namespace applied to the counter:
 
 ```scala
-val page1Perf = system.actorOf(StatsActor.props("stats.someserver.com", "page1"))
-val page2Perf = system.actorOf(StatsActor.props("stats.someserver.com", "page2"))
-val response = Timing("response")
+val page1Perf = system.actorOf(Stats.props(<config_with_namespace>))
+val page2Perf = system.actorOf(Stats.props(<config_with_namespace>))
+val response = Timing(Bucket("response"))
 page1Perf ! response(250.milliseconds)
 page2Perf ! response(100.milliseconds)
 ```
@@ -62,44 +71,56 @@ page2Perf ! response(100.milliseconds)
 But you don't have to use namespaced actors at all:
 
 ```scala
-val perf = system.actorOf(StatsActor.props("stats.someserver.com"))
-perf ! Timing("page1.response")(250.milliseconds)
-perf ! Timing("page2.response")(100.milliseconds)
+val perf = system.actorOf(Stats.props())
+perf ! Timing(Bucket("page1.response"))(250.milliseconds)
+perf ! Timing(Bucket("page2.response"))(100.milliseconds)
 ```
+
+### API
+
+There is a simple api if you dont want to use the actor's `!` method's
+
+```scala
+implicit val statsActor = context.actorOf(Stats.props())
+
+Stats.increment(Bucket("endpoint1"))
+Stats.timing(Bucket("page2.response"))(250 milliseconds)
+
+Stats.withTimer(Bucket("code.execution.time")) {
+    //execute code here
+    Thread.sleep(new Random().nextInt())
+}
+```
+
+
 
 ## Installation
 
-Releases are hosted on Maven Central.
+Releases and snapshots are hosted on The New Motion public repository. To add dependency to your project use following snippet:
 
 ```scala
-libraryDependencies ++= Seq("com.deploymentzone" %% "akka-actor-statsd" % "0.2")
+resolvers += "The New Motion Public Repo" at "http://nexus.thenewmotion.com/content/groups/public/"
+
+libraryDependencies += "com.thenewmotion" %% "akka-statsd-core" % "0.9.0"
 ```
 
-Snapshots are hosted on the Sonatype OSS repository.
-
-```scala
-resolvers ++= Seq("Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots")
+For stats collection over HTTP requests served by spray server or issued by spray client, use respective dependencies from below:
+```
+libraryDependencies += "com.thenewmotion" %% "akka-statsd-spray-server" % "0.9.0"
+libraryDependencies += "com.thenewmotion" %% "akka-statsd-spray-client" % "0.9.0"
 ```
 
-This library requires [Akka](http://akka.io) 2.3 to get around a bug with 
-[Stash and TestActorRef](http://stackoverflow.com/questions/21725473/creating-a-testactorref-results-in-nullpointerexception/22432436#22432436) for test purposes only. It is compatible with Akka 2.2.3. If you need to keep a dependency on Akka 2.2.3 (for use with [scala-redis-nb](https://github.com/debasishg/scala-redis-nb/tree/master) for example) be sure to use an exclusion rule:
-
-```scala
-libraryDependencies ++= Seq("com.deploymentzone" %% "akka-actor-statsd" % "0.2"
-  excludeAll ExclusionRule("com.typesafe.akka"))
-```
 
 ## Explanation
 
-This implementation is intended to be very high performance.
+This implementation is intended to be of high performance, thus it
 
-- Uses an akka.io UdpConnected implementation to bypass local security checks within the JVM
-- Batches messages together, as per [statsd Multi-Metric Packets](https://github.com/etsy/statsd/blob/master/docs/metric_types.md#multi-metric-packets) specification
+- uses an akka.io UdpConnected implementation to cache local security checks within the JVM if SecurityManager is enabled
+- allows for message batching before sending them out to StatsD, as per [statsd Multi-Metric Packets](https://github.com/etsy/statsd/blob/master/docs/metric_types.md#multi-metric-packets) specification. Turned on by default
 
-Supports all of the [statsd Metric Types](https://github.com/etsy/statsd/blob/master/docs/metric_types.md) including
-optional sampling parameters.
+Supports all of the [StatsD Metric Types](https://github.com/etsy/statsd/blob/master/docs/metric_types.md) including optional sampling parameters.
 
-| statsd               | akka-actor-statsd       |
+| StatsD               | akka-actor-statsd       |
 |:---------------------|:------------------------|
 | Counting             | Count                   |
 | Timing               | Timing                  |
@@ -109,48 +130,68 @@ optional sampling parameters.
 
 ### Batching
 
-As messages are transmitted to a stats actor those messages are queued for later 
-transmission. By default the queue flushes every 100 milliseconds and combines messages
-together up to a packet size of 1,432 bytes (taking UTF-8 character sizes into account).
+As messages are transmitted to a stats actor those messages are queued for later transmission. By default the queue flushes every 100 milliseconds and combines messages together up to a packet size of 1432 bytes (taking UTF-8 character sizes into account).
+
+This can be turned off in the configuration by setting `enable-multi-metric = false`
+
+## Bucket transformations
+
+Any `UUID` in the bucket path substituted with token `[id]`. In addition to this, clients can specify custom transformations to influence the way bucket names are augmented before being sent to StatsD server.
+
+In order to do so, the client configuration should contain `akka.statsd.transformations` section of the following format:
+
+"""
+akka.statsd.transformations = [
+  {
+    pattern = "/foo/[a-z0-9]+/bar",
+    into    = "/foo/[segment]/bar"
+  }
+]
+"""
+
+This reads as: if the part of the bucket matches the regular expression in `pattern`, replace it with the one described in `into` (which is *not* a regular expression).
+
+Please note that:
+- client-defined transformations take priority over `UUID` replacement
+- transformations are matched from top to bottom
+- every transformation that matches the path will be applied
 
 
 ## Configuration
 
-You may pass your own Typesafe Config instance to the `StatsActor.props(Config)` method, or use the parameterless
-method `StatsActor.props()` to rely on `ConfigFactory.load()` to resolve settings. Here are the default settings,
-with the exception of hostname, which is a required setting:
+By default `Stats.props()` uses `Config` which is constructed by resolving Typesafe Config with call to `ConfigFactory.load()`.
+You may use `akkas.statsd.Config`, constructed manually or from provided Typesafe Config instance too. 
+Here are the default settings, with the exception of hostname, which is a required setting:
 
 ```
-deploymentzone {
-    akka-actor-statsd {
-        hostname = "required"
+akka.statsd {
+        # hostname = "required"
         port = 8125
         namespace = ""
         # common packet sizes:
-        # fast ethernet:        1432
         # gigabit ethernet:     8932
+        # fast ethernet:        1432
         # commodity internet:    512
         packet-size = 1432
         transmit-interval = 100 ms
+
+        transformations = [
+          {
+            pattern = "foo"
+            into = "bar"
+          }
+        ]
     }
 }
 ```
 
-Even if you do not explicitly pass a Config by using one of the other `StatsActor.props(...)` methods downstream actors
-in the network still respect the configuration file settings - or the defaults if no configuration file is used.
+## Compatibility
+
+Since version `0.9.0`, if typesafe configuration used, provide settings in namespace `akka.statsd`.
+
+Versions before `0.9.0` use `deploymentzone.statsd`
 
 ## Influences
 
-- [statsd-scala] Straight forward neat implementation, but no actors means that by 
-    default message transmission - up until when the UDP packet is handed off to the kernel - will happen on the calling thread.
-- [akka-statsd] A trait for extending an actor which is a nice take, except by
-    following the intended implementation causes your actors to violate single responsibility principle and transmit stat data on the actor's thread.
-- [statsd-akka] Found this after I began my version, very close to what I had 
-    originally envisioned.
+Forked from githup repo at [cfeduke/akka-actor-statsd](https://github.com/cfeduke/akka-actor-statsd)
 
-[statsd]: https://github.com/etsy/statsd
-[akka]: http://akka.io
-[OSS Sonatype]: https://oss.sonatype.org/index.html#welcome
-[statsd-scala]: https://github.com/benhardy/statsd-scala
-[akka-statsd]: https://github.com/themodernlife/akka-statsd
-[statsd-akka]: https://github.com/archena/statsd-akka
