@@ -5,11 +5,11 @@ A dead simple [statsd] client written in Scala as group of actors using the [akk
 
 ## Naming conventions
 
-For The New Motion applications use the following naming conventions:
+The New Motion recommends using the following naming conventions:
 
 A 'bucket' consists of a namespace part and a hierarchy part
 
-the namespace is set by adding `[environment].[application]` in the application.conf
+The namespace is set by adding `[environment].[application]` in the application.conf
 
 environment can be `test`, `sandbox`, `prod` and even `unittest`
 the application a one or two word description of the application separated by dashes
