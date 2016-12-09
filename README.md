@@ -1,5 +1,5 @@
-# akka-actor-statsd
-[![Build Status](https://travis-ci.org/thenewmotion/akka-actor-statsd.svg?branch=master)](https://travis-ci.org/thenewmotion/akka-actor-statsd)
+# akka-statsd
+[![Build Status](https://travis-ci.org/thenewmotion/akka-statsd.svg?branch=master)](https://travis-ci.org/thenewmotion/akka-statsd)
 
 A dead simple [statsd] client written in Scala as group of actors using the [akka] framework.
 
@@ -120,7 +120,8 @@ This implementation is intended to be of high performance, thus it
 
 Supports all of the [StatsD Metric Types](https://github.com/etsy/statsd/blob/master/docs/metric_types.md) including optional sampling parameters.
 
-| StatsD               | akka-actor-statsd       |
+| StatsD               | 
+-statsd       |
 |:---------------------|:------------------------|
 | Counting             | Count                   |
 | Timing               | Timing                  |
