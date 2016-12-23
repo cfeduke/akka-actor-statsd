@@ -22,7 +22,7 @@ trait StatsDirectives {
   private def nowInMillis: Long = System.currentTimeMillis
 
   private def bucket(bucketName: String) = Bucket(bucketName , statsConfig.transformations)
-  private lazy val defaultBucket = "http.server"
+  private val defaultBucket = "http.server"
 
   private def success(m: HttpMethod, p: Uri.Path, initBucket: String): Bucket =
     bucket(initBucket) / m.name.toLowerCase / p.toString
