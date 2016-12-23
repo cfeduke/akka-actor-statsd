@@ -21,57 +21,77 @@ trait StatsDirectives {
 
   private def nowInMillis: Long = System.currentTimeMillis
 
-  private lazy val server = Bucket("http.server", statsConfig.transformations)
+  private def bucket(bucketName: String) = Bucket(bucketName , statsConfig.transformations)
+  private lazy val defaultBucket = "http.server"
 
-  private def success(m: HttpMethod, p: Uri.Path): Bucket =
-    server / m.name.toLowerCase / p.toString
+  private def success(m: HttpMethod, p: Uri.Path, initBucket: String): Bucket =
+    bucket(initBucket) / m.name.toLowerCase / p.toString
 
-  private def failure(m: HttpMethod, p: Uri.Path, c: StatusCode): Bucket =
-    server / c.intValue.toString / p.toString
+  private def failure(m: HttpMethod, p: Uri.Path, c: StatusCode, initBucket: String): Bucket =
+    bucket(initBucket) / c.intValue.toString / p.toString
 
 
   /**
-   * Collects timing and number of requests and sends data to statsd server
-   */
-  def countAndTime: Directive0 =
+    * Collects timing and number of requests and sends data to statsd server
+    * @param baseBucket is the initial bucket in which all metrics will be generated
+    */
+  def countAndTimeInBucket(baseBucket: String): Directive0 =
     mapRequestContext { ctx =>
       val start = nowInMillis
       val req = ctx.request
       ctx.withHttpResponseMapped { response =>
         if (response.status.isSuccess) {
-          val b = success(req.method, req.uri.path)
+          val b = success(req.method, req.uri.path, baseBucket)
           val end = nowInMillis
           stats ! Increment(b)
           stats ! new Timing(b)(end - start)
         } else
-          stats ! Increment(failure(req.method, req.uri.path, response.status))
+          stats ! Increment(failure(req.method, req.uri.path, response.status, baseBucket))
 
         response
       }
     }
+  /**
+    * Collects timing and number of requests and sends data to statsd server
+    * with defaultBucket
+    */
+  def countAndTime: Directive0 = countAndTimeInBucket(defaultBucket)
 
   /**
-   * Collects timing of requests and sends data to statsd server
-   */
-  def time: Directive0 =
+    * Collects timing of requests and sends data to statsd server
+    * @param baseBucket is the initial bucket in which all metrics will be generated
+    */
+  def timeInBucket(baseBucket: String) : Directive0 =
     mapRequestContext { ctx =>
       val start = nowInMillis
       val req = ctx.request
 
       ctx.withHttpResponseMapped { r =>
         if (r.status.isSuccess)
-          stats ! new Timing(success(req.method, req.uri.path))(nowInMillis - start)
+          stats ! new Timing(success(req.method, req.uri.path, baseBucket))(nowInMillis - start)
         r
       }
     }
 
   /**
+    * Collects timing and number of requests and sends data to statsd server
+    * with defaultBucket
+    */
+  def time: Directive0 = timeInBucket(defaultBucket)
+
+  /**
    * Collects number of requests and sends data to statsd
+   * @param baseBucket is the initial bucket in which all metrics will be generated
    */
-  def count: Directive0 =
+  def countInBucket(baseBucket: String): Directive0 =
     mapRequest { req =>
-      stats ! Increment(success(req.method, req.uri.path))
+      stats ! Increment(success(req.method, req.uri.path, baseBucket))
       req
     }
+  /**
+   * Collects number of requests and sends data to statsd
+   * with defaultBucket
+   */
+  def count: Directive0 = countInBucket(defaultBucket)
 
 }

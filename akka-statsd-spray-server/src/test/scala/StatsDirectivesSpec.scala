@@ -92,6 +92,21 @@ class StatsDirectivesSpec
         received.exists(_.isInstanceOf[Timing]) must equal (true)
       }
     }
+    it("Changes teh bucket if specified") {
+      val route = countAndTimeInBucket("init.bucket") {
+        getFooBar
+      }
+
+      Get("/foo/bar") ~>
+        route ~>
+        check {
+          val received = receiveN(2)
+          val expectedBucket = scala.collection.Set("init.bucket.get.foo.bar")
+          received.map { case m: Metric[_] => m.bucket.render }.toSet must equal(expectedBucket)
+          received.exists(_.isInstanceOf[Increment]) must equal (true)
+          received.exists(_.isInstanceOf[Timing]) must equal (true)
+        }
+    }
   }
 
   describe("Stats directives") {
