@@ -51,6 +51,7 @@ val `akka-statsd` =
     `akka-statsd-spray-client`,
     `akka-statsd-http-server`)
   .settings(
+    statsdSettings,
     publish := {}
   )
 
