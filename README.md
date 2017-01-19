@@ -1,5 +1,5 @@
 # akka-statsd
-[![Build Status](https://travis-ci.org/thenewmotion/akka-statsd.svg?branch=master)](https://travis-ci.org/thenewmotion/akka-statsd)
+[![Build Status](https://travis-ci.org/NewMotion/akka-statsd.svg?branch=master)](https://travis-ci.org/NewMotion/akka-statsd)
 
 A dead simple [statsd] client written in Scala as group of actors using the [akka] framework.
 
@@ -99,15 +99,14 @@ Stats.withTimer(Bucket("code.execution.time")) {
 Releases and snapshots are hosted on The New Motion public repository. To add dependency to your project use following snippet:
 
 ```scala
-resolvers += "The New Motion Public Repo" at "http://nexus.thenewmotion.com/content/groups/public/"
+resolvers += "New Motion Public Repo" at "http://nexus.thenewmotion.com/content/groups/public/"
 
-libraryDependencies += "com.thenewmotion" %% "akka-statsd-core" % "0.9.0"
+libraryDependencies += "com.thenewmotion" %% "akka-statsd-core" % "2.0.0-SNAPSHOT"
 ```
 
-For stats collection over HTTP requests served by spray server or issued by spray client, use respective dependencies from below:
+For stats collection over HTTP requests served by akka-http server dependency:
 ```
-libraryDependencies += "com.thenewmotion" %% "akka-statsd-spray-server" % "0.9.0"
-libraryDependencies += "com.thenewmotion" %% "akka-statsd-spray-client" % "0.9.0"
+libraryDependencies += "com.thenewmotion" %% "akka-statsd-http-server" % "2.0.0-SNAPSHOT"
 ```
 
 

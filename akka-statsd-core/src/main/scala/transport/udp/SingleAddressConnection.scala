@@ -52,6 +52,6 @@ private[transport] class SingleAddressConnection(
     case CommandFailed(Send(payload, _)) =>
       val msg = payload.utf8String
       log warning s"Unable to deliver message: $msg to $remoteAddress"
-      DeliveryFailed(msg)
+      sender ! DeliveryFailed(msg)
   }
 }
