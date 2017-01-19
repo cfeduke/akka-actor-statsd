@@ -41,7 +41,7 @@ private[statsd] class Connection(
     case msg: String =>
       connection ! Deliver(msg)
     case Terminated(conn) =>
-      context unwatch conn
+      val _ = context unwatch conn
     case DeliveryFailed(msg) =>
       tolerateFailures -= 1
       if (tolerateFailures < 0) {

@@ -38,14 +38,17 @@ private[statsd] class ScheduledDispatcher(
 
   def receive = {
     case msg: String =>
-      if (enableMultiMetric) mmq.enqueue(msg)
-      else connection ! msg
+      if (enableMultiMetric) {
+        val _ = mmq.enqueue(msg)
+      } else {
+        connection ! msg
+      }
     case Transmit =>
       mmq.payload().foreach(connection ! _)
   }
 
   override def postStop() {
-    recurringTransmit.cancel()
+    val _ = recurringTransmit.cancel()
   }
 
   private object Transmit
