@@ -1,7 +1,11 @@
+import tnm.ScalaVersion
+
 val statsdSettings = Seq(
   organization := "com.thenewmotion",
   licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
   homepage := Some(url("https://github.com/thenewmotion/akka-actor-statsd")),
+  scalaVersion := ScalaVersion.prev,
+  releaseCrossBuild := false,
   libraryDependencies := {
     Dependencies(scalaVersion.value).commonTest
   }
@@ -22,6 +26,14 @@ val `akka-statsd-spray-server` = project
     libraryDependencies ++= Dependencies(scalaVersion.value).sprayServer
   )
 
+val `akka-statsd-http-server` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`akka-statsd-core`)
+  .settings(
+    statsdSettings,
+    libraryDependencies ++= Dependencies(scalaVersion.value).akkaHttpServer
+  )
+
 val `akka-statsd-spray-client` = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`akka-statsd-core`)
@@ -36,34 +48,33 @@ val `akka-statsd` =
   .aggregate(
     `akka-statsd-core`,
     `akka-statsd-spray-server`,
-    `akka-statsd-spray-client`)
+    `akka-statsd-spray-client`,
+    `akka-statsd-http-server`)
   .settings(
     publish := {}
   )
 
 
 def Dependencies(scalaVersion: String) = new {
-  def akka(lib: String) = "com.typesafe.akka" %% s"akka-$lib" % {
-    scalaVersion match {
-      case tnm.ScalaVersion.curr => "2.4.3"
-      case tnm.ScalaVersion.prev => "2.3.14"
+
+  def akka(lib: String) = {
+    val version = lib match {
+      case x if x.startsWith("http") => "10.0.1"
+      case _ => "2.4.16"
     }
+
+    "com.typesafe.akka" %% s"akka-$lib" % version
   }
 
   def spray(lib: String, v: String = "1.3.3") = "io.spray" %% s"spray-$lib" % v
 
-  val ficus = "net.ceedubs" %%  "ficus" % {
-    scalaVersion match {
-      case tnm.ScalaVersion.curr => "1.1.2"
-      case tnm.ScalaVersion.prev => "1.0.1"
-    }
-  }
+  val ficus = "com.iheart" %%  "ficus" % "1.4.0"
 
   val core = Seq(
     akka("actor"),
     akka("slf4j"),
     ficus,
-    "ch.qos.logback" % "logback-classic" % "1.1.7"
+    "ch.qos.logback" % "logback-classic" % "1.1.8"
   )
 
   val sprayServer = core ++ Seq(
@@ -77,8 +88,13 @@ def Dependencies(scalaVersion: String) = new {
     spray("client")
   )
 
+  val akkaHttpServer = core ++ Seq(
+    akka("http"),
+    akka("http-testkit") % "test"
+  )
+
   val commonTest = Seq(
     akka("testkit"),
-    "org.scalatest" %% "scalatest" % "2.2.6"
+    "org.scalatest" %% "scalatest" % "3.0.1"
   ).map(_ % "test")
 }
