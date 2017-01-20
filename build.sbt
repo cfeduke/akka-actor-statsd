@@ -1,5 +1,5 @@
 val commonSettings = Seq(
-  organization := "com.thenewmotion",
+  organization := "com.newmotion",
   licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
   homepage := Some(url("https://github.com/NewMotion/akka-statsd")),
   libraryDependencies ++= Seq(

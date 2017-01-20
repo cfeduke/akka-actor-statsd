@@ -99,14 +99,12 @@ Stats.withTimer(Bucket("code.execution.time")) {
 Releases and snapshots are hosted on The New Motion public repository. To add dependency to your project use following snippet:
 
 ```scala
-resolvers += "New Motion Public Repo" at "http://nexus.thenewmotion.com/content/groups/public/"
-
-libraryDependencies += "com.thenewmotion" %% "akka-statsd-core" % "2.0.0-SNAPSHOT"
+libraryDependencies += "com.newmotion" %% "akka-statsd-core" % "2.0.0-SNAPSHOT"
 ```
 
-For stats collection over HTTP requests served by akka-http server dependency:
+For stats collection over HTTP requests served by akka-http server add:
 ```
-libraryDependencies += "com.thenewmotion" %% "akka-statsd-http-server" % "2.0.0-SNAPSHOT"
+libraryDependencies += "com.newmotion" %% "akka-statsd-http-server" % "2.0.0-SNAPSHOT"
 ```
 
 
