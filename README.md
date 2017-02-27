@@ -3,6 +3,55 @@
 
 A dead simple [statsd] client written in Scala as group of actors using the [akka] framework.
 
+## Installation
+
+Releases and snapshots are hosted on The New Motion public repository. To add dependency to your project use following snippet:
+
+```scala
+libraryDependencies += "com.newmotion" %% "akka-statsd-core" % "2.0.0-SNAPSHOT"
+```
+
+For stats collection over HTTP requests served by akka-http server add:
+```
+libraryDependencies += "com.newmotion" %% "akka-statsd-http-server" % "2.0.0-SNAPSHOT"
+```
+
+## Configuration
+
+By default `Stats.props()` uses `Config` which is constructed by resolving Typesafe Config with call to `ConfigFactory.load()`.
+You may use `akkas.statsd.Config`, constructed manually or from provided Typesafe Config instance too. 
+Here are the default settings, with the exception of hostname, which is a required setting:
+
+```
+akka.statsd {
+        # hostname = "required"
+        port = 8125
+        namespace = ""
+        # common packet sizes:
+        # gigabit ethernet:     8932
+        # fast ethernet:        1432
+        # commodity internet:    512
+        packet-size = 1432
+        transmit-interval = 100 ms
+
+        transformations = [
+          {
+            pattern = "foo"
+            into = "bar"
+          }
+        ]
+    }
+}
+```
+
+## Simplest Example
+
+```scala
+class SimpleExample extends App {
+  lazy val stats = context.actorOf(Stats.props())
+  stats ! Increment(Bucket("my.thingie.that.counts.app.starts"))
+}
+
 ## Naming conventions
 
 The New Motion recommends using the following naming conventions:
@@ -16,7 +65,7 @@ the application a one or two word description of the application separated by da
 
 Think about the hierarchy you want to use inside your application, this will be of great influence on the representation side
 
-## Examples
+## More Examples
 
 ```scala
 class Counter(val counterName: String) extends Actor {
@@ -92,22 +141,6 @@ Stats.withTimer(Bucket("code.execution.time")) {
 }
 ```
 
-
-
-## Installation
-
-Releases and snapshots are hosted on The New Motion public repository. To add dependency to your project use following snippet:
-
-```scala
-libraryDependencies += "com.newmotion" %% "akka-statsd-core" % "2.0.0-SNAPSHOT"
-```
-
-For stats collection over HTTP requests served by akka-http server add:
-```
-libraryDependencies += "com.newmotion" %% "akka-statsd-http-server" % "2.0.0-SNAPSHOT"
-```
-
-
 ## Explanation
 
 This implementation is intended to be of high performance, thus it
@@ -154,34 +187,6 @@ Please note that:
 - transformations are matched from top to bottom
 - every transformation that matches the path will be applied
 
-
-## Configuration
-
-By default `Stats.props()` uses `Config` which is constructed by resolving Typesafe Config with call to `ConfigFactory.load()`.
-You may use `akkas.statsd.Config`, constructed manually or from provided Typesafe Config instance too. 
-Here are the default settings, with the exception of hostname, which is a required setting:
-
-```
-akka.statsd {
-        # hostname = "required"
-        port = 8125
-        namespace = ""
-        # common packet sizes:
-        # gigabit ethernet:     8932
-        # fast ethernet:        1432
-        # commodity internet:    512
-        packet-size = 1432
-        transmit-interval = 100 ms
-
-        transformations = [
-          {
-            pattern = "foo"
-            into = "bar"
-          }
-        ]
-    }
-}
-```
 
 ## Compatibility
 
