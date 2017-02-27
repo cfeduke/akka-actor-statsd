@@ -19,3 +19,4 @@ src_managed/
 target/
 .idea/
 .idea_modules/
+.java-version
