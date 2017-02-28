@@ -8,12 +8,12 @@ A dead simple [statsd] client written in Scala as group of actors using the [akk
 Releases and snapshots are hosted on The New Motion public repository. To add dependency to your project use following snippet:
 
 ```scala
-libraryDependencies += "com.newmotion" %% "akka-statsd-core" % "2.0.0-SNAPSHOT"
+libraryDependencies += "com.newmotion" %% "akka-statsd-core" % "2.0.0"
 ```
 
 For stats collection over HTTP requests served by akka-http server add:
-```
-libraryDependencies += "com.newmotion" %% "akka-statsd-http-server" % "2.0.0-SNAPSHOT"
+```scala
+libraryDependencies += "com.newmotion" %% "akka-statsd-http-server" % "2.0.0"
 ```
 
 ## Configuration
@@ -46,15 +46,52 @@ akka.statsd {
 
 ## Simplest Example
 
+Following code can be executed as is in console of your project if library included as dependency
 ```scala
-class SimpleExample extends App {
-  lazy val stats = context.actorOf(Stats.props())
+def sendStats() {
+  import akka.actor.ActorSystem
+  import akka.statsd._
+  import com.typesafe.config.ConfigValueFactory.fromAnyRef
+ 
+  val system = ActorSystem("Example")
+  /* hostname is only one setting that has no default */
+  val cfg = Config(system.settings.config.withValue("akka.statsd.hostname", fromAnyRef("localhost")))
+  lazy val stats = system.actorOf(Stats.props(cfg))
   stats ! Increment(Bucket("my.thingie.that.counts.app.starts"))
-}
 
+  system.terminate()
+}
+```
+
+or (if you don't want to use actor's directly)
+
+```scala
+def sendStats() {
+  import concurrent.duration._
+  import akka.actor.ActorSystem
+  import akka.statsd._
+  import com.typesafe.config.ConfigValueFactory.fromAnyRef
+
+
+  val system = ActorSystem("Example")
+  /* hostname is only one setting that has no default */
+  val cfg = Config(system.settings.config.withValue("akka.statsd.hostname", fromAnyRef("localhost")))
+  implicit val statsActor = system.actorOf(Stats.props(cfg))
+
+  Stats.increment(Bucket("endpoint1"))
+  Stats.time(Bucket("page2.response"))(250.milliseconds)
+
+  Stats.withTimer(Bucket("code.execution.time")) {
+      //execute code here
+      Thread.sleep(new util.Random().nextInt(5000))
+  }
+
+  system.terminate()
+}
+```
 ## Naming conventions
 
-The New Motion recommends using the following naming conventions:
+It is recommended to use the following naming conventions:
 
 A 'bucket' consists of a namespace part and a hierarchy part
 
@@ -123,22 +160,6 @@ But you don't have to use namespaced actors at all:
 val perf = system.actorOf(Stats.props())
 perf ! Timing(Bucket("page1.response"))(250.milliseconds)
 perf ! Timing(Bucket("page2.response"))(100.milliseconds)
-```
-
-### API
-
-There is a simple api if you dont want to use the actor's `!` method's
-
-```scala
-implicit val statsActor = context.actorOf(Stats.props())
-
-Stats.increment(Bucket("endpoint1"))
-Stats.timing(Bucket("page2.response"))(250 milliseconds)
-
-Stats.withTimer(Bucket("code.execution.time")) {
-    //execute code here
-    Thread.sleep(new Random().nextInt())
-}
 ```
 
 ## Explanation
