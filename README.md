@@ -192,14 +192,14 @@ Any `UUID` in the bucket path substituted with token `[id]`. In addition to this
 
 In order to do so, the client configuration should contain `akka.statsd.transformations` section of the following format:
 
-"""
+```
 akka.statsd.transformations = [
   {
     pattern = "/foo/[a-z0-9]+/bar",
     into    = "/foo/[segment]/bar"
   }
 ]
-"""
+```
 
 This reads as: if the part of the bucket matches the regular expression in `pattern`, replace it with the one described in `into` (which is *not* a regular expression).
 
