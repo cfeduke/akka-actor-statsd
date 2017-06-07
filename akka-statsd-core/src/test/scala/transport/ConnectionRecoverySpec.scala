@@ -37,8 +37,6 @@ class ConnectionRecoverySpec
         }
       }
 
-      val messages = (1 to 4).map(_.toString)
-
       val connection = system.actorOf(Props(new Connection(Props(new Flakey(failures)), 1)))
       expectConnectionOpened
 
@@ -58,7 +56,4 @@ class ConnectionRecoverySpec
       expectAllDelivered("1st after reconnection")
     }
   }
-
-
-
 }

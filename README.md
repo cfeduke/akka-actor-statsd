@@ -8,12 +8,12 @@ A dead simple [statsd] client written in Scala as group of actors using the [akk
 Releases and snapshots are hosted on The New Motion public repository. To add dependency to your project use following snippet:
 
 ```scala
-libraryDependencies += "com.newmotion" %% "akka-statsd-core" % "2.0.0"
+libraryDependencies += "com.newmotion" %% "akka-statsd-core" % "2.1.0"
 ```
 
 For stats collection over HTTP requests served by akka-http server add:
 ```scala
-libraryDependencies += "com.newmotion" %% "akka-statsd-http-server" % "2.0.0"
+libraryDependencies += "com.newmotion" %% "akka-statsd-http-server" % "2.1.0"
 ```
 
 ## Configuration
@@ -217,5 +217,5 @@ Versions before `0.9.0` use `deploymentzone.statsd`
 
 ## Influences
 
-Forked from githup repo at [cfeduke/akka-actor-statsd](https://github.com/cfeduke/akka-actor-statsd)
+Forked from github repo at [cfeduke/akka-actor-statsd](https://github.com/cfeduke/akka-actor-statsd)
 
