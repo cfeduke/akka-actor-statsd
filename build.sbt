@@ -7,7 +7,8 @@ val commonSettings = Seq(
   libraryDependencies ++= Seq(
     akka("testkit"),
     "org.scalatest" %% "scalatest" % "3.0.3"
-  ).map(_ % "test")
+  ).map(_ % "test"),
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value
 )
 
 val `akka-statsd-core` = project
