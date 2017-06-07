@@ -1,3 +1,5 @@
+import com.typesafe.sbt.pgp.PgpKeys
+
 val commonSettings = Seq(
   organization := "com.newmotion",
   licenses := Seq("MIT" -> url("http://opensource.org/licenses/MIT")),
