@@ -1,4 +1,5 @@
 import com.typesafe.sbt.pgp.PgpKeys
+import SonatypeSettings._
 
 val commonSettings = Seq(
   organization := "com.newmotion",
@@ -8,7 +9,10 @@ val commonSettings = Seq(
     akka("testkit"),
     "org.scalatest" %% "scalatest" % "3.0.3"
   ).map(_ % "test"),
-  releasePublishArtifactsAction := PgpKeys.publishSigned.value
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+  publishTo := {
+    if (isSnapshot.value) snapshotsUrl else releasesUrl
+  }
 )
 
 val `akka-statsd-core` = project
@@ -40,8 +44,10 @@ val `akka-statsd` =
     `akka-statsd-core`,
     `akka-statsd-http-server`)
   .settings(
+    publishTo := None,
     commonSettings,
     publish := {}
+
   )
 
 
