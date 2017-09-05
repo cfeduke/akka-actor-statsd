@@ -79,7 +79,7 @@ class ScheduledDispatcherSpec
     }
   }
 
-  private class Environment(transmitInterval: Long, emptyQueueOnFlush: Boolean = false) {
+  private class Environment(transmitInterval: Long) {
     def config = Config(
       ConfigFactory
         .load("ScheduledDispatcherSpec.conf")
