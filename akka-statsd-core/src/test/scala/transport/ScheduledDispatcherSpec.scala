@@ -55,6 +55,14 @@ class ScheduledDispatcherSpec
               |three
               |four""".stripMargin)
         }
+        "combine all the messages and send all the necessary payloads if emptyQueueOnFlush is true" in new QueueFlushEnvironment(10, 250) {
+          val scheduled = system.actorOf(ScheduledDispatcher.props(config, forwardTo(testActor)))
+          Seq("one", "two", "three", "four").foreach(msg => scheduled ! msg)
+          receiveN(2, 300.millis) shouldBe Seq("""one
+                                                  |two""".stripMargin,
+                                               """three
+                                                  |four""".stripMargin)
+        }
       }
       "some messages are staggered after the transmitInterval" should {
         "receive one batch of messages and then another" in new Environment(50) {
@@ -84,6 +92,14 @@ class ScheduledDispatcherSpec
     }
 
     def forwardTo(recipient: ActorRef) = Props(new Forwarder(recipient))
+  }
+
+  private class QueueFlushEnvironment(
+    packetSize: Int,
+    transmitInterval: Long
+  ) extends Environment(transmitInterval) {
+
+    override def config = super.config.copy(packetSize = packetSize, emptyQueueOnFlush = true)
   }
 
   private class ExceptionCaptureEnvironment(

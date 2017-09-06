@@ -44,7 +44,8 @@ private[statsd] class ScheduledDispatcher(
         connection ! msg
       }
     case Transmit =>
-      mmq.payload().foreach(connection ! _)
+      if (config.emptyQueueOnFlush) mmq.flushQueue().foreach(connection ! _)
+      else mmq.payload().foreach(connection ! _)
   }
 
   override def postStop() {

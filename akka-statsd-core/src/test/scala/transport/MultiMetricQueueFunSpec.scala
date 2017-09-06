@@ -73,5 +73,16 @@ class MultiMetricQueueFunSpec
             |2""".stripMargin))
       }
     }
+
+    describe("when the queue is larger than the packet size") {
+      it("returns as many payloads as necessary to empty the queue when calling flushQueue") {
+        val subject = MultiMetricQueue(4).enqueue("12").enqueue("34").enqueue("56").enqueue("7")
+        assert(subject.flushQueue() ==
+          Stream("""12
+                 |34""".stripMargin,
+                """56
+                  |7""".stripMargin))
+      }
+    }
   }
 }

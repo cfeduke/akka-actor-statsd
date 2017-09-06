@@ -13,6 +13,7 @@ case class Config(
   packetSize: Int,
   transmitInterval: FiniteDuration,
   enableMultiMetric: Boolean,
+  emptyQueueOnFlush: Boolean,
   transformations: Seq[Transformation]
 )
 
@@ -33,6 +34,7 @@ object Config {
       packetSize = cfg.as[Int]("packet-size"),
       transmitInterval = cfg.as[FiniteDuration]("transmit-interval"),
       enableMultiMetric = cfg.as[Boolean]("enable-multi-metric"),
+      emptyQueueOnFlush = cfg.as[Boolean]("empty-queue-on-flush"),
       transformations =
         cfg.as[Seq[FicusConfig]]("transformations").map(transformation)
     )

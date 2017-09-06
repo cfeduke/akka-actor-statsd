@@ -81,6 +81,12 @@ private[statsd] class MultiMetricQueue(val packetSize: Int)(implicit system: Act
     }
   }
 
+  /**
+    * Creates as many payloads as necessary to empty the queue.
+    * This ensures we flush the whole queue at every flush command and prevents memory growing out of control.
+    */
+  def flushQueue(): Stream[String] = Stream.continually(payload()).takeWhile(_.nonEmpty).flatten
+
   private object DroppedMessageWarning extends ((Int, String) => Unit) {
     def apply(proposedAddition: Int, message: String) {
       if (!logger.isWarningEnabled)
