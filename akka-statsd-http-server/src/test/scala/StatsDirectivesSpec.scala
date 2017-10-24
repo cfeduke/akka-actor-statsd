@@ -9,6 +9,8 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.statsd._
 import akka.http.scaladsl.server._
 import Directives._
+import akka.http.scaladsl.model.StatusCodes
+import scala.concurrent.Future
 
 class StatsDirectivesSpec
   extends {
@@ -43,6 +45,14 @@ class StatsDirectivesSpec
 
   val getFooBar = (get & path("foo" / "bar")) { complete("ok") }
 
+  val getFooBarFail = (get & path("foo" / "bar")) { complete(StatusCodes.BadRequest) }
+
+  val getFooBarError = (get & path("foo" / "bar")) {
+    complete {
+      new RuntimeException("Ooooopsie")
+    }
+  }
+
   describe("count directive") {
     it("tracks request counts") {
       val route = count {
@@ -56,6 +66,34 @@ class StatsDirectivesSpec
           case m: Increment => m.bucket.render must equal("http.server.get.foo.bar")
         }
       }
+    }
+
+    it("tracks request counts when returning an error") {
+      val route = count {
+        getFooBarFail
+      }
+
+      Get("/foo/bar") ~>
+        route ~>
+        check {
+          expectMsgPF(1.second) {
+            case m: Increment => m.bucket.render must equal("http.server.400.foo.bar")
+          }
+        }
+    }
+
+    it("tracks request counts when an exception occurs") {
+      val route = count {
+        getFooBarError
+      }
+
+      Get("/foo/bar") ~>
+        route ~>
+        check {
+          expectMsgPF(1.second) {
+            case m: Increment => m.bucket.render must equal("http.server.exception.foo.bar")
+          }
+        }
     }
   }
 
@@ -75,23 +113,8 @@ class StatsDirectivesSpec
     }
   }
 
-  describe("countAndTime directive") {
-    it("tracks both request counts and execution time") {
-      val route = countAndTime {
-        getFooBar
-      }
-
-      Get("/foo/bar") ~>
-      route ~>
-      check {
-        val received = receiveN(2)
-        val expectedBucket = scala.collection.Set("http.server.get.foo.bar")
-        received.map { case m: Metric[_] => m.bucket.render }.toSet must equal(expectedBucket)
-        received.exists(_.isInstanceOf[Increment]) must equal (true)
-        received.exists(_.isInstanceOf[Timing]) must equal (true)
-      }
-    }
-    it("Changes teh bucket if specified") {
+  describe("Stats directives") {
+    it("Changes the bucket if specified") {
       val route = countAndTimeInBucket("init.bucket") {
         getFooBar
       }
@@ -106,9 +129,7 @@ class StatsDirectivesSpec
           received.exists(_.isInstanceOf[Timing]) must equal (true)
         }
     }
-  }
 
-  describe("Stats directives") {
     it("replace UUID in paths with 'id' token") {
       val route = count {
         path("foo" / "bar" / Segment) { _ => get { complete("ok") } }

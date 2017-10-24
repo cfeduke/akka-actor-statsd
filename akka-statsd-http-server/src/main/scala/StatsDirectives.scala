@@ -7,6 +7,7 @@ import directives._
 import BasicDirectives._
 import akka.http.scaladsl.server.RouteResult.Complete
 import akka.statsd.{Config => StatsConfig, _}
+import akka.http.scaladsl.util.FastFuture._
 
 trait StatsDirectives {
 
@@ -33,29 +34,16 @@ trait StatsDirectives {
   private def failure(m: HttpMethod, p: Uri.Path, c: StatusCode, initBucket: String): Bucket =
     bucket(initBucket) / c.intValue.toString / p.toString
 
+  private def exception(m: HttpMethod, p: Uri.Path, initBucket: String): Bucket =
+    bucket(initBucket) / "exception" / p.toString
+
 
   /**
     * Collects timing and number of requests and sends data to statsd server
     * @param baseBucket is the initial bucket in which all metrics will be generated
     */
   def countAndTimeInBucket(baseBucket: String): Directive0 =
-    extractRequestContext.flatMap { ctx =>
-      val start = nowInMillis
-      val req = ctx.request
-
-      mapRouteResult {
-        case res@Complete(response) =>
-          if (response.status.isSuccess) {
-            val b = success(req.method, req.uri.path, baseBucket)
-            val end = nowInMillis
-            stats ! Increment(b)
-            stats ! new Timing(b)(end - start)
-          } else
-            stats ! Increment(failure(req.method, req.uri.path, response.status, baseBucket))
-          res
-        case res => res
-      }
-    }
+    countInBucket(baseBucket) & timeInBucket(baseBucket)
   /**
     * Collects timing and number of requests and sends data to statsd server
     * with defaultBucket
@@ -87,15 +75,33 @@ trait StatsDirectives {
     */
   def time: Directive0 = timeInBucket(defaultBucket)
 
-  /**
-   * Collects number of requests and sends data to statsd
-   * @param baseBucket is the initial bucket in which all metrics will be generated
-   */
-  def countInBucket(baseBucket: String): Directive0 =
-    mapRequest { req =>
-      stats ! Increment(success(req.method, req.uri.path, baseBucket))
-      req
+  def countInBucket(baseBucket: String): Directive0 = {
+    Directive { innerRouteBuilder ⇒ ctx ⇒
+      import ctx.executionContext
+
+      val req = ctx.request
+
+      val x = innerRouteBuilder(())(ctx).fast.map {
+        case res@Complete(response) =>
+          if (response.status.isSuccess) {
+            stats ! Increment(success(req.method, req.uri.path, baseBucket))
+          } else {
+            stats ! Increment(failure(req.method, req.uri.path, response.status, baseBucket))
+          }
+          res
+        case res =>
+          res
+      }
+
+      x.failed.foreach {
+        _ => stats ! Increment(exception(req.method, req.uri.path, baseBucket))
+      }
+      x
     }
+  }
+
+
+
   /**
    * Collects number of requests and sends data to statsd
    * with defaultBucket
