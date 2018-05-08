@@ -59,9 +59,9 @@ class StatsDirectivesSpec
     }
   }
 
-  describe("count directive") {
-    it("tracks request counts") {
-      val route = count {
+  describe("countResponse directive") {
+    it("tracks response counts") {
+      val route = countResponse {
         getFooBar
       }
 
@@ -69,13 +69,13 @@ class StatsDirectivesSpec
       route ~>
       check {
         expectMsgPF(1.second) {
-          case m: Increment => m.bucket.render must equal("http.server.get.foo.bar")
+          case m: Increment => m.bucket.render must equal("http.server.response.get.2xx.foo.bar")
         }
       }
     }
 
-    it("tracks request counts when returning an error") {
-      val route = count {
+    it("tracks response counts when returning an error") {
+      val route = countResponse {
         getFooBarFail
       }
 
@@ -83,13 +83,13 @@ class StatsDirectivesSpec
         route ~>
         check {
           expectMsgPF(1.second) {
-            case m: Increment => m.bucket.render must equal("http.server.400.foo.bar")
+            case m: Increment => m.bucket.render must equal("http.server.response.get.4xx.foo.bar")
           }
         }
     }
 
     it("tracks request counts when an exception occurs") {
-      val route = count {
+      val route = countResponse {
         getFooBarError
       }
 
@@ -97,7 +97,23 @@ class StatsDirectivesSpec
         route ~>
         check {
           expectMsgPF(1.second) {
-            case m: Increment => m.bucket.render must equal("http.server.exception.foo.bar")
+            case m: Increment => m.bucket.render must equal("http.server.response.get.exception.foo.bar")
+          }
+        }
+    }
+  }
+
+  describe("countRequest directive") {
+    it("tracks request counts") {
+      val route = countRequest {
+        getFooBar
+      }
+
+      Get("/foo/bar") ~>
+        route ~>
+        check {
+          expectMsgPF(1.second) {
+            case m: Increment => m.bucket.render must equal("http.server.request.get.foo.bar")
           }
         }
     }
@@ -115,7 +131,7 @@ class StatsDirectivesSpec
         status mustEqual StatusCodes.OK  // make sure we actually retrieve the response
         expectMsgPF(1.second) {
           case m: Timing =>
-            m.bucket.render must equal("http.server.get.foo.bar")
+            m.bucket.render must equal("http.server.response.get.2xx.foo.bar")
             m.value must be > 500L
         }
       }
@@ -132,8 +148,11 @@ class StatsDirectivesSpec
         route ~>
         check {
           status mustEqual StatusCodes.OK  // make sure we actually retrieve the response
-          val received = receiveN(2)
-          val expectedBucket = scala.collection.Set("init.bucket.get.foo.bar")
+          val received = receiveN(3)
+          val expectedBucket = scala.collection.Set(
+            "init.bucket.request.get.foo.bar",
+            "init.bucket.response.get.2xx.foo.bar"
+          )
           received.map { case m: Metric[_] => m.bucket.render }.toSet must equal(expectedBucket)
           received.exists(_.isInstanceOf[Increment]) must equal (true)
           received.exists(_.isInstanceOf[Timing]) must equal (true)
@@ -141,7 +160,7 @@ class StatsDirectivesSpec
     }
 
     it("replace UUID in paths with 'id' token") {
-      val route = count {
+      val route = countResponse {
         path("foo" / "bar" / Segment) { _ => get { complete("ok") } }
       }
 
@@ -149,13 +168,13 @@ class StatsDirectivesSpec
       route ~>
       check {
         expectMsgPF(1.second) {
-          case msg: Increment => msg.bucket.render must equal ("http.server.get.foo.bar.[id]")
+          case msg: Increment => msg.bucket.render must equal ("http.server.response.get.2xx.foo.bar.[id]")
         }
       }
     }
 
     it("replace arbitrary segments with 'segment' token in paths matching configured patterns") {
-      val route = count {
+      val route = countResponse {
         get {
           path("foo" / Segment / "bar") { _ => complete("ok") }
         }
@@ -165,7 +184,7 @@ class StatsDirectivesSpec
       route ~>
       check {
         expectMsgPF(1.second) {
-          case msg: Increment => msg.bucket.render must equal("http.server.get.foo.[segment].bar")
+          case msg: Increment => msg.bucket.render must equal("http.server.response.get.2xx.foo.[segment].bar")
         }
       }
     }
