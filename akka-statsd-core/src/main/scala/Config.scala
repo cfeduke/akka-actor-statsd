@@ -1,11 +1,11 @@
 package akka.statsd
 
-import net.ceedubs.ficus._, Ficus._
 import java.net.InetSocketAddress
 import com.typesafe.config.{Config => TsConfig, _}
 import scala.concurrent.duration._
 import scala.util.matching.Regex
-
+import scala.concurrent.duration.MILLISECONDS
+import scala.collection.JavaConverters._
 
 case class Config(
   address: InetSocketAddress,
@@ -23,20 +23,18 @@ object Config {
   def apply(underlying: TsConfig = ConfigFactory.load): Config = {
     val cfg = underlying.getConfig(path)
 
-    def transformation(c: FicusConfig) =
-      Transformation(new Regex(c.as[String]("pattern")), c.as[String]("into"))
+    def transformation(c: TsConfig) =
+      Transformation(new Regex(c.getString("pattern")), c.getString("into"))
 
     Config(
-      new InetSocketAddress(
-        cfg.as[String]("hostname"),
-        cfg.as[Int]("port")),
-      namespace = cfg.as[String]("namespace"),
-      packetSize = cfg.as[Int]("packet-size"),
-      transmitInterval = cfg.as[FiniteDuration]("transmit-interval"),
-      enableMultiMetric = cfg.as[Boolean]("enable-multi-metric"),
-      emptyQueueOnFlush = cfg.as[Boolean]("empty-queue-on-flush"),
-      transformations =
-        cfg.as[Seq[FicusConfig]]("transformations").map(transformation)
+      new InetSocketAddress(cfg.getString("hostname"), cfg.getInt("port")),
+      namespace = cfg.getString("namespace"),
+      packetSize = cfg.getInt("packet-size"),
+      transmitInterval =
+        FiniteDuration(cfg.getDuration("transmit-interval", java.util.concurrent.TimeUnit.MILLISECONDS), MILLISECONDS),
+      enableMultiMetric = cfg.getBoolean("enable-multi-metric"),
+      emptyQueueOnFlush = cfg.getBoolean("empty-queue-on-flush"),
+      transformations = cfg.getConfigList("transformations").asScala.map(transformation)
     )
   }
 }

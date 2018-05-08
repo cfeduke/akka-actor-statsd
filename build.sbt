@@ -17,8 +17,7 @@ val `akka-statsd-core` = project
     commonSettings,
     libraryDependencies ++= Seq(
       akka("actor"),
-      akka("slf4j"),
-      "com.iheart" %%  "ficus" % "1.4.1"
+      akka("slf4j")
     )
   )
 
