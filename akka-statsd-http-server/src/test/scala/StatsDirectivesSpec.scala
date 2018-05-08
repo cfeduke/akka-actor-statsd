@@ -9,8 +9,9 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.statsd._
 import akka.http.scaladsl.server._
 import Directives._
-import akka.http.scaladsl.model.StatusCodes
-import scala.concurrent.Future
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, StatusCodes}
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 
 class StatsDirectivesSpec
   extends {
@@ -44,6 +45,11 @@ class StatsDirectivesSpec
   override lazy val stats = testActor
 
   val getFooBar = (get & path("foo" / "bar")) { complete("ok") }
+
+  val getFooBarSlow = (get & path("foo" / "bar")) {
+    val s = Source.tick(100.milli, 100.milli, "x").take(5).map(ByteString(_))
+    complete(HttpEntity(ContentTypes.`text/plain(UTF-8)`, s))
+  }
 
   val getFooBarFail = (get & path("foo" / "bar")) { complete(StatusCodes.BadRequest) }
 
@@ -100,14 +106,17 @@ class StatsDirectivesSpec
   describe("time directive") {
     it("tracks request execution time") {
       val route = time {
-        getFooBar
+        getFooBarSlow
       }
 
       Get("/foo/bar") ~>
       route ~>
       check {
+        status mustEqual StatusCodes.OK  // make sure we actually retrieve the response
         expectMsgPF(1.second) {
-          case m: Timing => m.bucket.render must equal("http.server.get.foo.bar")
+          case m: Timing =>
+            m.bucket.render must equal("http.server.get.foo.bar")
+            m.value must be > 500L
         }
       }
     }
@@ -122,6 +131,7 @@ class StatsDirectivesSpec
       Get("/foo/bar") ~>
         route ~>
         check {
+          status mustEqual StatusCodes.OK  // make sure we actually retrieve the response
           val received = receiveN(2)
           val expectedBucket = scala.collection.Set("init.bucket.get.foo.bar")
           received.map { case m: Metric[_] => m.bucket.render }.toSet must equal(expectedBucket)

@@ -3,13 +3,12 @@ package akka.statsd.http.server
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.{HttpMethod, StatusCode, Uri}
 import akka.http.scaladsl.server._
-import directives._
-import BasicDirectives._
-import akka.http.scaladsl.server.RouteResult.Complete
+import akka.http.scaladsl.server.RouteResult.{Complete, Rejected}
 import akka.statsd.{Config => StatsConfig, _}
 import akka.http.scaladsl.util.FastFuture._
+import scala.util.{Failure, Success, Try}
 
-trait StatsDirectives {
+trait StatsDirectives extends AroundDirectives {
 
   /**
    * Override this in the calling class when you want to specify your own configuration
@@ -50,24 +49,25 @@ trait StatsDirectives {
     */
   def countAndTime: Directive0 = countAndTimeInBucket(defaultBucket)
 
+  private def timeRequest(baseBucket: String)(ctx: RequestContext): Try[RouteResult] => Unit = {
+    val start = nowInMillis
+
+    {
+      case Success(Complete(response)) =>
+        if (response.status.isSuccess) {
+          stats ! new Timing(success(ctx.request.method, ctx.request.uri.path, baseBucket))(nowInMillis - start)
+        }
+      case Success(Rejected(_)) =>
+      case Failure(_)           =>
+    }
+  }
+
   /**
     * Collects timing of requests and sends data to statsd server
     * @param baseBucket is the initial bucket in which all metrics will be generated
     */
   def timeInBucket(baseBucket: String) : Directive0 =
-    extractRequestContext.flatMap { ctx =>
-      val start = nowInMillis
-      val req = ctx.request
-
-      mapRouteResult {
-        case res@Complete(response) =>
-          if (response.status.isSuccess) {
-            stats ! new Timing(success(req.method, req.uri.path, baseBucket))(nowInMillis - start)
-          }
-          res
-        case res => res
-      }
-    }
+    aroundRequest(timeRequest(baseBucket))
 
   /**
     * Collects timing and number of requests and sends data to statsd server
