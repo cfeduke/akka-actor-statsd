@@ -4,7 +4,7 @@ import scala.concurrent.duration._
 import org.scalatest.{path => _, _}
 import akka.testkit._
 import com.typesafe.config.ConfigFactory
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.statsd._
 import akka.http.scaladsl.server._
@@ -40,9 +40,7 @@ class StatsDirectivesSpec
       """
     ).withFallback(ConfigFactory.load))
 
-  override val statsSystem = system
-
-  override lazy val stats = testActor
+  override lazy val extractStats: Directive1[ActorRef] = provide(testActor)
 
   val getFooBar = (get & path("foo" / "bar")) { complete("ok") }
 

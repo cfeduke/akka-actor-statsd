@@ -1,26 +1,25 @@
 package akka.statsd.http.server
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.ActorRef
 import akka.http.scaladsl.model.{HttpMethod, StatusCode, Uri}
 import akka.http.scaladsl.server._
 import akka.http.scaladsl.server.RouteResult.{Complete, Rejected}
+import akka.http.scaladsl.server.directives.BasicDirectives
 import akka.statsd.{Config => StatsConfig, _}
 import akka.http.scaladsl.util.FastFuture._
 import scala.util.{Failure, Success, Try}
 
-trait StatsDirectives extends AroundDirectives {
+trait StatsDirectives extends AroundDirectives with BasicDirectives {
 
   /**
     * Override this in the calling class when you want to specify your own configuration
     */
   def statsConfig: StatsConfig = StatsConfig()
 
-  /**
-    * Implement this in the calling class.
-    */
-  def statsSystem: ActorSystem
-
-  protected lazy val stats: ActorRef = statsSystem.actorOf(Stats.props(statsConfig))
+  protected lazy val extractStats: Directive1[ActorRef] =
+    extractActorSystem.map {
+      _.actorOf(Stats.props(statsConfig))
+    }
 
   private def nowInMillis: Long = System.currentTimeMillis
 
@@ -45,7 +44,7 @@ trait StatsDirectives extends AroundDirectives {
   private def exceptionBucket(m: HttpMethod, p: Uri.Path, initBucket: String): Bucket =
     bucket(initBucket) / "response" / m.name.toLowerCase / "exception" / p.toString
 
-  private def timeRequest(baseBucket: String)(ctx: RequestContext): Try[RouteResult] => Unit = {
+  private def timeRequest(stats: ActorRef, baseBucket: String)(ctx: RequestContext): Try[RouteResult] => Unit = {
     val start = nowInMillis
 
     {
@@ -65,7 +64,9 @@ trait StatsDirectives extends AroundDirectives {
     * @param baseBucket is the initial bucket in which all metrics will be generated
     */
   def timeInBucket(baseBucket: String): Directive0 =
-    aroundRequest(timeRequest(baseBucket))
+    extractStats.flatMap { stats =>
+      aroundRequest(timeRequest(stats, baseBucket))
+    }
 
   /**
     * Collects timing and number of requests and sends data to statsd server with defaultBucket
@@ -73,10 +74,12 @@ trait StatsDirectives extends AroundDirectives {
   def time: Directive0 = timeInBucket(defaultBucket)
 
   def countRequestInBucket(baseBucket: String): Directive0 = {
-    Directive { innerRouteBuilder ⇒ ctx ⇒
-      val req = ctx.request
-      stats ! Increment(requestBucket(req.method, req.uri.path, baseBucket))
-      innerRouteBuilder(())(ctx)
+    extractStats.flatMap { stats =>
+      Directive { innerRouteBuilder ⇒ ctx ⇒
+        val req = ctx.request
+        stats ! Increment(requestBucket(req.method, req.uri.path, baseBucket))
+        innerRouteBuilder(())(ctx)
+      }
     }
   }
 
@@ -86,24 +89,25 @@ trait StatsDirectives extends AroundDirectives {
   def countRequest: Directive0 = countRequestInBucket(defaultBucket)
 
   def countResponseInBucket(baseBucket: String): Directive0 = {
-    Directive { innerRouteBuilder ⇒ ctx ⇒
-      import ctx.executionContext
+    extractStats.flatMap { stats =>
+      Directive { innerRouteBuilder ⇒ ctx ⇒
+        import ctx.executionContext
 
-      val req = ctx.request
+        val req = ctx.request
 
-      val x = innerRouteBuilder(())(ctx).fast.map {
-        case res @ Complete(response) =>
-          stats ! Increment(responseBucket(req.method, req.uri.path, response.status, baseBucket))
-          res
-        case res =>
-          res
+        val x = innerRouteBuilder(())(ctx).fast.map {
+          case res @ Complete(response) =>
+            stats ! Increment(responseBucket(req.method, req.uri.path, response.status, baseBucket))
+            res
+          case res =>
+            res
+        }
+
+        x.failed.foreach {
+          _ => stats ! Increment(exceptionBucket(req.method, req.uri.path, baseBucket))
+        }
+        x
       }
-
-      x.failed.foreach {
-        _ => stats ! Increment(exceptionBucket(req.method, req.uri.path, baseBucket))
-      }
-      x
-
     }
   }
 
