@@ -21,6 +21,17 @@ val `akka-statsd-core` = project
     )
   )
 
+val `akka-statsd-http-client` = project
+  .enablePlugins(OssLibPlugin)
+  .dependsOn(`akka-statsd-core`)
+  .settings(
+    commonSettings,
+    libraryDependencies ++= Seq(
+      akka("http"),
+      akka("stream")
+    )
+  )
+
 val `akka-statsd-http-server` = project
   .enablePlugins(OssLibPlugin)
   .dependsOn(`akka-statsd-core`)
@@ -38,7 +49,9 @@ val `akka-statsd` =
   .enablePlugins(OssLibPlugin)
   .aggregate(
     `akka-statsd-core`,
-    `akka-statsd-http-server`)
+    `akka-statsd-http-server`,
+    `akka-statsd-http-client`
+  )
   .settings(
     commonSettings,
     publish := {}
@@ -53,3 +66,4 @@ def akka(lib: String) = {
 
   "com.typesafe.akka" %% s"akka-$lib" % version
 }
+

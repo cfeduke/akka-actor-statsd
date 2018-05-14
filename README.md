@@ -215,7 +215,98 @@ Since version `0.9.0`, if typesafe configuration used, provide settings in names
 
 Versions before `0.9.0` use `deploymentzone.statsd`
 
+## akka-statsd-http-server
+
+This module includes akka-http directives to allow the user to measure the requests and responses to their Http
+server.  To use it, import `akka.statsd.http.server.StatsDirectives` and either mix in the trait or use the object
+directly.  These directives are available:
+
+### countRequestInBucket
+
+Counts how many requests the route receives, sending the data to a specific bucket prefix, e.g. with a bucket of
+`cool-http` a GET request to `/foo/bar` will send the data here:
+
+`cool-http.request.get.foo.bar`
+
+### countRequest
+
+Counts how many requests the route receives, sending the data with the bucket prefix of http.server, e.g. 
+a GET request to `/foo/bar` will send the data here:
+
+`http.server.request.get.foo.bar`
+
+### countResponseInBucket
+
+Counts how many responses the route sends, sending the data to a specific bucket prefix, e.g. with a 
+bucket of `cool-http` a GET request to `/foo/bar` will send the data here:
+                                                                                       
+`cool-http.response.get.2xx.foo.bar`
+
+Response codes are grouped into batches of 100, e.g. `200-299` becomes`2xx` etc
+
+### countResponse
+
+Counts how many requests the route receives, sending the data with the bucket prefix of http.server e.g.
+a GET request to `/foo/bar` will send the data here:
+                                                                                       
+`http.server.response.get.2xx.foo.bar`
+
+Response codes are grouped into batches of 100, e.g. `200-299` becomes`2xx` etc
+
+### timeInBucket
+
+Times how long the route takes, sending the data to a specific bucket prefix, e.g. with a 
+bucket of `cool-http` a GET request to `/foo/bar` will send the data here:
+                                                                                       
+`cool-http.response.get.2xx.foo.bar`
+
+Response codes are grouped into batches of 100, e.g. `200-299` becomes`2xx` etc
+
+### time
+
+Times how long the route takes, sending the data with the bucket prefix of http.server, e.g.  a GET request 
+to `/foo/bar` will send the data here:
+                                                                                       
+`cool-http.response.get.2xx.foo.bar`
+
+Response codes are grouped into batches of 100, e.g. `200-299` becomes`2xx` etc
+
+## akka-statsd-http-client
+
+This module allows the user to send statsd statistics about requests they make to external systems.  The simplest
+way to use this:
+
+```scala
+  val http = Http()
+  val client = StatsClient(http)
+  val req = HttpRequest(uri = Uri("http://www.monkeys.com/foo/bar"))
+  client.singleRequest(req)
+```
+
+This will send 3 stats:
+
+- Count to `http.client.request.get.http.www-monkeys-com.foo.bar`
+- Count to `http.client.response.get.2xx.http.www-monkeys-com.foo.bar`
+- Time to `http.client.response.get.2xx.http.www-monkeys-com.foo.bar`
+
 ## Influences
 
 Forked from github repo at [cfeduke/akka-actor-statsd](https://github.com/cfeduke/akka-actor-statsd)
 
+## Changelog
+
+### 3.0.0
+
+#### General
+
+- No longer has ficus as a dependency (uses pure TypeSafe config)
+
+#### akka-statsd-http-server
+
+- Times now include the time needed to stream the response to the client
+- New countRequest directive records the number of requests independently from the responses
+- No longer needed to provide a `statsSystem`; it's extracted automatically from the route
+
+#### akka-statsd-http-client
+
+- New module  
