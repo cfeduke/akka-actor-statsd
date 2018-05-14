@@ -5,6 +5,8 @@ import akka.http.scaladsl.HttpExt
 import akka.statsd._
 import akka.http.scaladsl.model._
 import akka.statsd.{Config => StatsConfig}
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.Duration
 import scala.concurrent.{ExecutionContext, Future}
 
 class StatsClient(
@@ -17,7 +19,7 @@ class StatsClient(
     */
   def statsConfig: StatsConfig = StatsConfig()
 
-  protected def nowInMillis: Long = System.currentTimeMillis
+  protected def nowInNanos: Long = System.nanoTime
 
   protected def bucket(bucketName: String) = Bucket(bucketName, statsConfig.transformations)
 
@@ -54,14 +56,14 @@ class StatsClient(
   def singleRequest(req: HttpRequest)(
     implicit ec: ExecutionContext
   ): Future[HttpResponse] = {
-    val start = nowInMillis
+    val start = nowInNanos
 
     sendRequestCount(requestBucket(req.method, req.uri))
 
     val res = requestMaker(req).map { response =>
       val bucket = responseBucket(req.method, req.uri, response.status)
       sendResponseCount(bucket)
-      sendResponseTime(bucket, nowInMillis - start)
+      sendResponseTime(bucket, Duration(nowInNanos - start, TimeUnit.NANOSECONDS).toMillis)
       response
     }
 

@@ -7,6 +7,8 @@ import akka.http.scaladsl.server.RouteResult.{Complete, Rejected}
 import akka.http.scaladsl.server.directives.BasicDirectives
 import akka.statsd.{Config => StatsConfig, _}
 import akka.http.scaladsl.util.FastFuture._
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success, Try}
 
 trait StatsDirectives extends AroundDirectives with BasicDirectives {
@@ -21,7 +23,7 @@ trait StatsDirectives extends AroundDirectives with BasicDirectives {
       _.actorOf(Stats.props(statsConfig))
     }
 
-  private def nowInMillis: Long = System.currentTimeMillis
+  private def nowInNanos: Long = System.nanoTime
 
   private def bucket(bucketName: String) = Bucket(bucketName, statsConfig.transformations)
   private val defaultBucket = "http.server"
@@ -45,13 +47,13 @@ trait StatsDirectives extends AroundDirectives with BasicDirectives {
     bucket(initBucket) / "response" / m.name.toLowerCase / "exception" / p.toString
 
   private def timeRequest(stats: ActorRef, baseBucket: String)(ctx: RequestContext): Try[RouteResult] => Unit = {
-    val start = nowInMillis
+    val start = nowInNanos
 
     {
       case Success(Complete(response)) =>
         if (response.status.isSuccess) {
           stats ! new Timing(responseBucket(ctx.request.method, ctx.request.uri.path, response.status, baseBucket))(
-            nowInMillis - start
+            Duration(nowInNanos - start, TimeUnit.NANOSECONDS).toMillis
           )
         }
       case Success(Rejected(_)) =>
