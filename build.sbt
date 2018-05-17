@@ -40,6 +40,7 @@ val `akka-statsd-http-server` = project
     libraryDependencies ++= Seq(
       akka("http"),
       akka("stream"),
+      "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0",
       akka("http-testkit") % "test"
     )
   )

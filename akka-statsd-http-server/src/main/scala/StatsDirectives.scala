@@ -18,9 +18,9 @@ trait StatsDirectives extends AroundDirectives with BasicDirectives {
     */
   def statsConfig: StatsConfig = StatsConfig()
 
-  protected lazy val extractStats: Directive1[ActorRef] =
+  protected val extractStats: Directive1[ActorRef] =
     extractActorSystem.map {
-      _.actorOf(Stats.props(statsConfig))
+      StatsExtension(_).statsActor(statsConfig)
     }
 
   private def nowInNanos: Long = System.nanoTime

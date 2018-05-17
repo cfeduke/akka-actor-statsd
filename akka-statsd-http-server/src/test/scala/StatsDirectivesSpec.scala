@@ -40,7 +40,7 @@ class StatsDirectivesSpec
       """
     ).withFallback(ConfigFactory.load))
 
-  override lazy val extractStats: Directive1[ActorRef] = provide(testActor)
+  override val extractStats: Directive1[ActorRef] = provide(testActor)
 
   val getFooBar = (get & path("foo" / "bar")) { complete("ok") }
 
