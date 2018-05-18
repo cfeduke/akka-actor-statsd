@@ -2,8 +2,8 @@ package akka.statsd
 
 import scala.util.matching.Regex
 
-
-case class Transformation(regex: Regex, into: String) {
+case class Transformation(regexS: String, into: String) {
+  val regex = new Regex(regexS)
   def apply(s: String): String = regex.replaceAllIn(s, into)
 }
 
@@ -32,11 +32,11 @@ object Bucket {
 
   private val delimiter = "."
   private val defaults = {
-    val reservedSymbols = Transformation("""[:|@\\]""".r, "_")
-    val partDelimiters = Transformation("""[/]""".r, delimiter)
+    val reservedSymbols = Transformation("""[:|@\\]""", "_")
+    val partDelimiters = Transformation("""[/]""", delimiter)
     val uuid = {
       val hex = """[a-fA-F\d]"""
-      Transformation(s"""$hex{8}-$hex{4}-$hex{4}-$hex{4}-$hex{12}""".r, "[id]")
+      Transformation(s"""$hex{8}-$hex{4}-$hex{4}-$hex{4}-$hex{12}""", "[id]")
     }
 
     Seq(reservedSymbols, partDelimiters, uuid)

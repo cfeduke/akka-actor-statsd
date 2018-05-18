@@ -34,14 +34,14 @@ class BucketSpec
     }
 
     it("favors provided transformations over default ones") {
-      val ts = Seq(Transformation(".+".r, "anything"))
+      val ts = Seq(Transformation(".+", "anything"))
 
       Bucket(java.util.UUID.randomUUID.toString, ts) must equal(
         Bucket("anything", ts))
     }
 
     it("transforms over several path parts") {
-      val ts = Seq(Transformation("""[a-z]+\.\d+""".r, "alphanum"))
+      val ts = Seq(Transformation("""[a-z]+\.\d+""", "alphanum"))
 
       (Bucket("abc", ts) / "999").render must equal(
         Bucket("alphanum", ts).render)

@@ -16,7 +16,9 @@ trait StatsDirectives extends AroundDirectives with BasicDirectives {
   /**
     * Override this in the calling class when you want to specify your own configuration
     */
-  def statsConfig: StatsConfig = StatsConfig()
+  def loadStatsConfig(): StatsConfig = StatsConfig()
+
+  private lazy val statsConfig = loadStatsConfig()
 
   protected val extractStats: Directive1[ActorRef] =
     extractActorSystem.map {

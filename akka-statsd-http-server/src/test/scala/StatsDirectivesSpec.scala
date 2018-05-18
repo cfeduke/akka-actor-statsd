@@ -25,7 +25,7 @@ class StatsDirectivesSpec
 
   def actorRefFactory = system
 
-  override val statsConfig =
+  override def loadStatsConfig() =
     Config(ConfigFactory.parseString(
       """
         {

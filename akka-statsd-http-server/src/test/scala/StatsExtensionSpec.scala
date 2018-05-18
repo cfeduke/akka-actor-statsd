@@ -14,7 +14,7 @@ class StatsExtensionSpec
   with FunSpecLike
   with MustMatchers {
 
-  val statsConfig =
+  def loadStatsConfig =
     Config(ConfigFactory.parseString(
       """
         {
@@ -31,15 +31,15 @@ class StatsExtensionSpec
 
   describe("stats extension") {
     it("gets the same actor for the same config") {
-      val actor1 = StatsExtension(system).statsActor(statsConfig)
-      val actor2 = StatsExtension(system).statsActor(statsConfig)
+      val actor1 = StatsExtension(system).statsActor(loadStatsConfig)
+      val actor2 = StatsExtension(system).statsActor(loadStatsConfig)
 
       actor1 must equal(actor2)
     }
 
     it("gets a different actor for a different config") {
-      val actor1 = StatsExtension(system).statsActor(statsConfig)
-      val actor2 = StatsExtension(system).statsActor(statsConfig.copy(namespace = "monkeys"))
+      val actor1 = StatsExtension(system).statsActor(loadStatsConfig)
+      val actor2 = StatsExtension(system).statsActor(loadStatsConfig.copy(namespace = "monkeys"))
 
       actor1 must not equal(actor2)
     }

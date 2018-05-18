@@ -26,5 +26,24 @@ class ConfigSpec
       config.address.getPort should be(9999)
       config.namespace should be("mango")
     }
+
+    it("is equal when loaded with the same parameters") {
+      def load() =
+        Config(ConfigFactory.parseString(
+          """
+        {
+          akka.statsd.hostname = localhost
+          akka.statsd.transformations = [
+            {
+              pattern = "/foo/[a-zA-Z0-9\\-]+/bar"
+              into = "foo.[segment].bar"
+            }
+          ]
+        }
+      """
+        ).withFallback(ConfigFactory.load))
+
+      load() should equal(load())
+    }
   }
 }

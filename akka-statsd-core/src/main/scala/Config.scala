@@ -3,7 +3,6 @@ package akka.statsd
 import java.net.InetSocketAddress
 import com.typesafe.config.{Config => TsConfig, _}
 import scala.concurrent.duration._
-import scala.util.matching.Regex
 import scala.concurrent.duration.MILLISECONDS
 import scala.collection.JavaConverters._
 
@@ -24,7 +23,7 @@ object Config {
     val cfg = underlying.getConfig(path)
 
     def transformation(c: TsConfig) =
-      Transformation(new Regex(c.getString("pattern")), c.getString("into"))
+      Transformation(c.getString("pattern"), c.getString("into"))
 
     Config(
       new InetSocketAddress(cfg.getString("hostname"), cfg.getInt("port")),

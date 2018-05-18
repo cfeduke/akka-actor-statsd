@@ -295,6 +295,13 @@ Forked from github repo at [cfeduke/akka-actor-statsd](https://github.com/cfeduk
 
 ## Changelog
 
+### 3.0.2
+
+Previous bug was not fixed properly, because 
+* StatsDirectives loaded the config every time it sent a stat
+* Two Configs that appear equal were not, due to one Regex not being equal to another even when 
+created from the same string
+
 ### 3.0.1
 
 Fixed a bug where akka-statsd-http-server StatsDirective would create a new actor for every stat it sends
