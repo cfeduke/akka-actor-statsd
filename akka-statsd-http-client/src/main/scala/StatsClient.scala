@@ -1,34 +1,24 @@
 package akka.statsd.http.client
 
 import akka.actor.{ActorRef, ActorSystem}
-import akka.http.scaladsl.HttpExt
-import akka.statsd._
+import akka.http.scaladsl.Http
+import akka.statsd.{Config => StatsConfig, _}
 import akka.http.scaladsl.model._
-import akka.statsd.{Config => StatsConfig}
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
+import StatsClient.ReqRes
 
-class StatsClient(
-  requestMaker: HttpRequest => Future[HttpResponse],
-  baseBucket: String = "http.client"
-)(implicit system: ActorSystem) {
+trait StatsClient {
 
-  /**
-    * Override this in the calling class when you want to specify your own configuration
-    */
-  def statsConfig: StatsConfig = StatsConfig()
-
-  protected def nowInNanos: Long = System.nanoTime
-
-  protected def bucket(bucketName: String) = Bucket(bucketName, statsConfig.transformations)
+  protected def bucket(bucketName: String)(implicit statsConfig: StatsConfig) =
+    Bucket(bucketName, statsConfig.transformations)
 
   protected def uriToString(u: Uri): String = u.scheme + '.' + u.authority.toString.replace('.', '-') + u.path.toString
 
-  protected def requestBucket(m: HttpMethod, u: Uri): Bucket =
-    bucket(baseBucket) / "request" / m.name.toLowerCase / uriToString(u)
-
-  protected def responseBucket(m: HttpMethod, u: Uri, c: StatusCode): Bucket = {
+  protected def responseBucket(baseBucket: String, m: HttpMethod, u: Uri, c: StatusCode)(
+    implicit statsConfig: StatsConfig
+  ): Bucket = {
     val statusBucket = c match {
       case x if x.intValue >= 200 && x.intValue <= 299 => "2xx"
       case x if x.intValue >= 300 && x.intValue <= 399 => "3xx"
@@ -40,36 +30,61 @@ class StatsClient(
     bucket(baseBucket) / "response" / m.name.toLowerCase / statusBucket / uriToString(u)
   }
 
-  protected def exceptionBucket(m: HttpMethod, u: Uri): Bucket =
+  protected def exceptionBucket(baseBucket: String, m: HttpMethod, u: Uri)(implicit statsConfig: StatsConfig): Bucket =
     bucket(baseBucket) / "response" / m.name.toLowerCase / "exception" / uriToString(u)
 
-  protected def createStatsActor(): ActorRef = system.actorOf(Stats.props(statsConfig))
+  protected def requestBucket(baseBucket: String, m: HttpMethod, u: Uri)(implicit statsConfig: StatsConfig): Bucket =
+    bucket(baseBucket) / "request" / m.name.toLowerCase / uriToString(u)
 
-  protected lazy val stats: ActorRef = createStatsActor()
+  protected def nowInNanos: Long = System.nanoTime
 
-  protected def sendRequestCount(bucket: Bucket): Unit = ()
+  protected val defaultBucket = "http.client"
 
-  protected def sendResponseCount(bucket: Bucket): Unit = ()
+  protected def statsActor(system: ActorSystem, statsConfig: StatsConfig): ActorRef =
+    StatsExtension(system).statsActor(statsConfig)
 
-  protected def sendResponseTime(bucket: Bucket, time: Long): Unit = ()
+  def countRequests(
+    underlying: ReqRes,
+    baseBucket: String = defaultBucket
+  )(implicit system: ActorSystem, statsConfig: StatsConfig = StatsConfig()): ReqRes = { req =>
+    val stats = statsActor(system, statsConfig)
+    stats ! Increment(requestBucket(baseBucket, req.method, req.uri))
+    underlying(req)
+  }
 
-  def singleRequest(req: HttpRequest)(
-    implicit ec: ExecutionContext
-  ): Future[HttpResponse] = {
+  def timeResponses(
+    underlying: ReqRes,
+    baseBucket: String = defaultBucket
+  )(implicit system: ActorSystem, statsConfig: StatsConfig = StatsConfig()): ReqRes = { req =>
+    import system.dispatcher
+
+    val stats = statsActor(system, statsConfig)
+
     val start = nowInNanos
 
-    sendRequestCount(requestBucket(req.method, req.uri))
+    underlying(req).map { response =>
+      val bucket = responseBucket(baseBucket, req.method, req.uri, response.status)
+      stats ! new Timing(bucket)(Duration(nowInNanos - start, TimeUnit.NANOSECONDS).toMillis)
+      response
+    }
+  }
 
-    val res = requestMaker(req).map { response =>
-      val bucket = responseBucket(req.method, req.uri, response.status)
-      sendResponseCount(bucket)
-      sendResponseTime(bucket, Duration(nowInNanos - start, TimeUnit.NANOSECONDS).toMillis)
+  def countResponses(
+    underlying: ReqRes,
+    baseBucket: String = defaultBucket
+  )(implicit system: ActorSystem, statsConfig: StatsConfig = StatsConfig()): ReqRes = { req =>
+    import system.dispatcher
+    val stats = statsActor(system, statsConfig)
+
+    val res = underlying(req).map { response =>
+      val bucket = responseBucket(baseBucket, req.method, req.uri, response.status)
+      stats ! Increment(bucket)
       response
     }
 
     res.onComplete {
       case scala.util.Failure(_) =>
-        exceptionBucket(req.method, req.uri)
+        stats ! Increment(exceptionBucket(baseBucket, req.method, req.uri))
       case scala.util.Success(_) =>
     }
 
@@ -77,26 +92,21 @@ class StatsClient(
   }
 }
 
-trait TimeResponses {
-  self: StatsClient =>
-  override protected def sendResponseTime(bucket: Bucket, time: Long): Unit = stats ! new Timing(bucket)(time)
-}
+object StatsClient extends StatsClient {
+  type ReqRes = HttpRequest => Future[HttpResponse]
 
-trait CountRequests {
-  self: StatsClient =>
-  override protected def sendRequestCount(bucket: Bucket): Unit = stats ! Increment(bucket)
-}
+  def apply(baseBucket: String = defaultBucket)(
+    implicit system: ActorSystem,
+    statsConfig: StatsConfig = StatsConfig()
+  ): ReqRes = {
+    val underlying: ReqRes = req => Http(system).singleRequest(req)
 
-trait CountResponses {
-  self: StatsClient =>
-  override protected def sendResponseCount(bucket: Bucket): Unit = stats ! Increment(bucket)
-
-}
-
-object StatsClient {
-  def apply(http: HttpExt, baseBucket: String = "http.client"): StatsClient =
-    new StatsClient(req => http.singleRequest(req), baseBucket)(http.system)
-      with CountRequests
-      with CountResponses
-      with TimeResponses
+    Function.chain(
+      Seq(
+        countRequests(_: ReqRes, baseBucket),
+        countResponses(_: ReqRes, baseBucket),
+        timeResponses(_: ReqRes, baseBucket)
+      )
+    )(underlying)
+  }
 }

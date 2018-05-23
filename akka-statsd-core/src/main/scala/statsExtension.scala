@@ -1,8 +1,7 @@
-package akka.statsd.http.server
+package akka.statsd
 
 import akka.actor.{ActorRef, ExtendedActorSystem, Extension, ExtensionId}
-import akka.statsd.Stats
-import akka.statsd.{Config => StatsConfig, _}
+import akka.statsd.{Config => StatsConfig}
 import java.util.concurrent.ConcurrentHashMap
 import scala.compat.java8.FunctionConverters._
 
