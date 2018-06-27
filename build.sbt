@@ -1,4 +1,5 @@
 import com.typesafe.sbt.pgp.PgpKeys
+import ReleaseTransformations._
 
 val commonSettings = Seq(
   organization := "com.newmotion",
@@ -8,7 +9,21 @@ val commonSettings = Seq(
     akka("testkit"),
     "org.scalatest" %% "scalatest" % "3.0.5"
   ).map(_ % "test"),
-  releasePublishArtifactsAction := PgpKeys.publishSigned.value
+  releasePublishArtifactsAction := PgpKeys.publishSigned.value,
+  releaseProcess := Seq[ReleaseStep](
+    checkSnapshotDependencies,
+    inquireVersions,
+    runClean,
+    runTest,
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    releaseStepCommandAndRemaining("+publishSigned"),
+    setNextVersion,
+    commitNextVersion,
+    releaseStepCommand("sonatypeReleaseAll"),
+    pushChanges
+  )
 )
 
 val `akka-statsd-core` = project
@@ -61,8 +76,8 @@ val `akka-statsd` =
 
 def akka(lib: String) = {
   val version = lib match {
-    case x if x.startsWith("http") => "10.1.1"
-    case _ => "2.5.12"
+    case x if x.startsWith("http") => "10.1.3"
+    case _ => "2.5.13"
   }
 
   "com.typesafe.akka" %% s"akka-$lib" % version
