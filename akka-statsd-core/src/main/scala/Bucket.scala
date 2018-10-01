@@ -9,16 +9,17 @@ case class Transformation(regexS: String, into: String) {
 
 case class Bucket private(
   path: Seq[String],
-  transformations: Seq[Transformation]
+  transformations: Seq[Transformation],
+  transformUuid: Boolean
 ) {
   private def transform(part: String) =
-    Bucket.transform(part, transformations)
+    Bucket.transform(part, transformations, transformUuid)
 
   def /(part: String) =
-    new Bucket(path :+ transform(part), transformations)
+    new Bucket(path :+ transform(part), transformations, transformUuid)
 
   def prepend(part: String) =
-    new Bucket(transform(part) +: path, transformations)
+    new Bucket(transform(part) +: path, transformations, transformUuid)
 
   def render =
     transform(path.mkString(Bucket.delimiter))
@@ -26,25 +27,24 @@ case class Bucket private(
 
 object Bucket {
 
-  def apply(path: String, ts: Seq[Transformation] = Seq.empty): Bucket =
-    new Bucket(Seq(transform(path, ts)), ts)
-
+  def apply(path: String, ts: Seq[Transformation] = Seq.empty, transformUuid: Boolean = true): Bucket =
+    new Bucket(Seq(transform(path, ts, transformUuid)), ts, transformUuid)
 
   private val delimiter = "."
-  private val defaults = {
+  private def defaults(transformUuid: Boolean) = {
     val reservedSymbols = Transformation("""[:|@\\]""", "_")
     val partDelimiters = Transformation("""[/]""", delimiter)
-    val uuid = {
+    lazy val uuid = {
       val hex = """[a-fA-F\d]"""
       Transformation(s"""$hex{8}-$hex{4}-$hex{4}-$hex{4}-$hex{12}""", "[id]")
     }
 
-    Seq(reservedSymbols, partDelimiters, uuid)
+    Seq(reservedSymbols, partDelimiters) ++ (if (transformUuid) Seq(uuid) else Seq.empty)
   }
 
-  protected[statsd] def transform(path: String, ts: Seq[Transformation]): String =
+  protected[statsd] def transform(path: String, ts: Seq[Transformation], transformUuid: Boolean): String =
     withoutHangingSeparators(
-      (ts ++ defaults).foldLeft(path){case (s, t) => t(s)}
+      (ts ++ defaults(transformUuid)).foldLeft(path){case (s, t) => t(s)}
     )
 
   @annotation.tailrec

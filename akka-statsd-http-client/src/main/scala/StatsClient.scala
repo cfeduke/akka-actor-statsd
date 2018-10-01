@@ -12,7 +12,7 @@ import StatsClient.ReqRes
 trait StatsClient {
 
   protected def bucket(bucketName: String)(implicit statsConfig: StatsConfig) =
-    Bucket(bucketName, statsConfig.transformations)
+    Bucket(bucketName, statsConfig.transformations, statsConfig.transformUuid)
 
   protected def uriToString(u: Uri): String = u.scheme + '.' + u.authority.toString.replace('.', '-') + u.path.toString
 

@@ -34,6 +34,8 @@ akka.statsd {
         packet-size = 1432
         transmit-interval = 100 ms
 
+        transform-uuid = true
+
         transformations = [
           {
             pattern = "foo"
@@ -188,7 +190,9 @@ This can be turned off in the configuration by setting `enable-multi-metric = fa
 
 ## Bucket transformations
 
-Any `UUID` in the bucket path substituted with token `[id]`. In addition to this, clients can specify custom transformations to influence the way bucket names are augmented before being sent to StatsD server.
+If the `transform-uuid` option is enabled, any `UUID` in the bucket path substituted with token `[id]`. 
+
+In addition to this, clients can specify custom transformations to influence the way bucket names are augmented before being sent to StatsD server.
 
 In order to do so, the client configuration should contain `akka.statsd.transformations` section of the following format:
 
@@ -294,6 +298,10 @@ This will send 3 stats:
 Forked from github repo at [cfeduke/akka-actor-statsd](https://github.com/cfeduke/akka-actor-statsd)
 
 ## Changelog
+
+### 3.0.7
+
+Added the `transform-uuid` flag
 
 ### 3.0.2
 

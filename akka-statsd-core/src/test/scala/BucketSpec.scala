@@ -33,6 +33,11 @@ class BucketSpec
       Bucket(java.util.UUID.randomUUID.toString).render must equal(Bucket("[id]").render)
     }
 
+    it("does not substituted UUIDs for [id] when disabled") {
+      val uuid = java.util.UUID.randomUUID.toString
+      Bucket(uuid, transformUuid = false).render must equal(uuid)
+    }
+
     it("favors provided transformations over default ones") {
       val ts = Seq(Transformation(".+", "anything"))
 

@@ -13,7 +13,8 @@ case class Config(
   transmitInterval: FiniteDuration,
   enableMultiMetric: Boolean,
   emptyQueueOnFlush: Boolean,
-  transformations: Seq[Transformation]
+  transformations: Seq[Transformation],
+  transformUuid: Boolean
 )
 
 object Config {
@@ -33,7 +34,8 @@ object Config {
         FiniteDuration(cfg.getDuration("transmit-interval", java.util.concurrent.TimeUnit.MILLISECONDS), MILLISECONDS),
       enableMultiMetric = cfg.getBoolean("enable-multi-metric"),
       emptyQueueOnFlush = cfg.getBoolean("empty-queue-on-flush"),
-      transformations = cfg.getConfigList("transformations").asScala.map(transformation)
+      transformations = cfg.getConfigList("transformations").asScala.map(transformation),
+      transformUuid = cfg.getBoolean("transform-uuid")
     )
   }
 }

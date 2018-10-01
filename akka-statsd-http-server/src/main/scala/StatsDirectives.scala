@@ -27,7 +27,7 @@ trait StatsDirectives extends AroundDirectives with BasicDirectives {
 
   private def nowInNanos: Long = System.nanoTime
 
-  private def bucket(bucketName: String) = Bucket(bucketName, statsConfig.transformations)
+  private def bucket(bucketName: String) = Bucket(bucketName, statsConfig.transformations, statsConfig.transformUuid)
   private val defaultBucket = "http.server"
 
   private def requestBucket(m: HttpMethod, p: Uri.Path, initBucket: String): Bucket =
