@@ -14,7 +14,8 @@ case class Config(
   enableMultiMetric: Boolean,
   emptyQueueOnFlush: Boolean,
   transformations: Seq[Transformation],
-  transformUuid: Boolean
+  transformUuid: Boolean,
+  connectedUdp: Boolean
 )
 
 object Config {
@@ -35,7 +36,8 @@ object Config {
       enableMultiMetric = cfg.getBoolean("enable-multi-metric"),
       emptyQueueOnFlush = cfg.getBoolean("empty-queue-on-flush"),
       transformations = cfg.getConfigList("transformations").asScala.map(transformation),
-      transformUuid = cfg.getBoolean("transform-uuid")
+      transformUuid = cfg.getBoolean("transform-uuid"),
+      connectedUdp = cfg.getBoolean("connected-udp")
     )
   }
 }

@@ -31,7 +31,13 @@ object Stats {
   def bufferedConnection(cfg: Config): Props =
     ScheduledDispatcher.props(cfg, Connection.props(cfg.address))
 
-  def props(cfg: Config = Config(), conn: Config => Props = bufferedConnection): Props =
+  def bufferedUnconnected(cfg: Config): Props =
+    ScheduledDispatcher.props(cfg, UdpUnconnected.props(cfg.address))
+
+  def connectionFromConfig(cfg: Config): Props =
+    if (cfg.connectedUdp) bufferedConnection(cfg) else bufferedUnconnected(cfg)
+
+  def props(cfg: Config = Config(), conn: Config => Props = connectionFromConfig): Props =
     Props(new Stats(cfg, conn(cfg)))
 
   /**

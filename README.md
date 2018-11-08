@@ -8,12 +8,12 @@ A dead simple [statsd] client written in Scala as group of actors using the [akk
 Releases and snapshots are hosted on The New Motion public repository. To add dependency to your project use following snippet:
 
 ```scala
-libraryDependencies += "com.newmotion" %% "akka-statsd-core" % "3.0.1"
+libraryDependencies += "com.newmotion" %% "akka-statsd-core" % "3.1.0"
 ```
 
 For stats collection over HTTP requests served by akka-http server add:
 ```scala
-libraryDependencies += "com.newmotion" %% "akka-statsd-http-server" % "3.0.1"
+libraryDependencies += "com.newmotion" %% "akka-statsd-http-server" % "3.1.0"
 ```
 
 ## Configuration
@@ -42,6 +42,8 @@ akka.statsd {
             into = "bar"
           }
         ]
+        
+        connected-udp = true
     }
 }
 ```
@@ -298,6 +300,11 @@ This will send 3 stats:
 Forked from github repo at [cfeduke/akka-actor-statsd](https://github.com/cfeduke/akka-actor-statsd)
 
 ## Changelog
+
+### 3.1.0
+
+Added the connected-udp flag.  The default is true, and it behaves as before, setting up an Akka UDP Connection.  If
+set to false however, it will use Akka Unconnected UDP (see https://doc.akka.io/docs/akka/2.5.18/io-udp.html)
 
 ### 3.0.7
 

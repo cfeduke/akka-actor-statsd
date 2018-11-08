@@ -76,8 +76,8 @@ val `akka-statsd` =
 
 def akka(lib: String) = {
   val version = lib match {
-    case x if x.startsWith("http") => "10.1.3"
-    case _ => "2.5.13"
+    case x if x.startsWith("http") => "10.1.5"
+    case _ => "2.5.18"
   }
 
   "com.typesafe.akka" %% s"akka-$lib" % version
