@@ -31,8 +31,8 @@ val `akka-statsd-core` = project
   .settings(
     commonSettings,
     libraryDependencies ++= Seq(
-      akka("actor"),
-      akka("slf4j")
+      akka("actor") % Provided,
+      akka("slf4j") % Provided
     )
   )
 
@@ -42,8 +42,8 @@ val `akka-statsd-http-client` = project
   .settings(
     commonSettings,
     libraryDependencies ++= Seq(
-      akka("http"),
-      akka("stream")
+      akka("http") % Provided,
+      akka("stream") % Provided
     )
   )
 
@@ -53,10 +53,10 @@ val `akka-statsd-http-server` = project
   .settings(
     commonSettings,
     libraryDependencies ++= Seq(
-      akka("http"),
-      akka("stream"),
+      akka("http") % Provided,
+      akka("stream") % Provided,
       "org.scala-lang.modules" %% "scala-java8-compat" % "0.9.0",
-      akka("http-testkit") % "test"
+      akka("http-testkit") % Test
     )
   )
 
@@ -76,8 +76,8 @@ val `akka-statsd` =
 
 def akka(lib: String) = {
   val version = lib match {
-    case x if x.startsWith("http") => "10.1.5"
-    case _ => "2.5.18"
+    case x if x.startsWith("http") => "10.1.+"
+    case _ => "2.5.+"
   }
 
   "com.typesafe.akka" %% s"akka-$lib" % version
