@@ -95,7 +95,7 @@ class StatsSpec
       .copy(address = boundListenerAddress())
     val statsProps = Stats.props(baseConfig)
 
-    def shutdown() {
+    def shutdown(): Unit = {
       listener ! Udp.Unbind
     }
   }

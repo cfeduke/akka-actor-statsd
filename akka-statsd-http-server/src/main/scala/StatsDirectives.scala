@@ -79,7 +79,7 @@ trait StatsDirectives extends AroundDirectives with BasicDirectives {
 
   def countRequestInBucket(baseBucket: String): Directive0 = {
     extractStats.flatMap { stats =>
-      Directive { innerRouteBuilder ⇒ ctx ⇒
+      Directive { innerRouteBuilder => ctx =>
         val req = ctx.request
         stats ! Increment(requestBucket(req.method, req.uri.path, baseBucket))
         innerRouteBuilder(())(ctx)
@@ -94,7 +94,7 @@ trait StatsDirectives extends AroundDirectives with BasicDirectives {
 
   def countResponseInBucket(baseBucket: String): Directive0 = {
     extractStats.flatMap { stats =>
-      Directive { innerRouteBuilder ⇒ ctx ⇒
+      Directive { innerRouteBuilder => ctx =>
         import ctx.executionContext
 
         val req = ctx.request

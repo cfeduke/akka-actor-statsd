@@ -17,7 +17,7 @@ private[statsd] class UdpUnconnected(remoteAddress: InetSocketAddress) extends A
   def receive: Receive = waitingForConnection
 
   def waitingForConnection: Receive = {
-    case Udp.SimpleSenderReady ⇒
+    case Udp.SimpleSenderReady =>
       unstashAll()
       context become operational(sender())
     case _: String =>

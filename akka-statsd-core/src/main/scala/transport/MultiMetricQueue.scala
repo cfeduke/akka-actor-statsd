@@ -88,7 +88,7 @@ private[statsd] class MultiMetricQueue(val packetSize: Int)(implicit system: Act
   def flushQueue(): Stream[String] = Stream.continually(payload()).takeWhile(_.nonEmpty).flatten
 
   private object DroppedMessageWarning extends ((Int, String) => Unit) {
-    def apply(proposedAddition: Int, message: String) {
+    def apply(proposedAddition: Int, message: String): Unit = {
       if (!logger.isWarningEnabled)
         return
 

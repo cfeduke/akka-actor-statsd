@@ -9,7 +9,7 @@ trait BeforeAndAfterAllTestKit
 
   implicit def system: ActorSystem
 
-  override protected def afterAll() {
+  override protected def afterAll(): Unit = {
     akka.testkit.TestKit.shutdownActorSystem(system)
   }
 

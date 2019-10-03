@@ -48,7 +48,7 @@ private[statsd] class ScheduledDispatcher(
       else mmq.payload().foreach(connection ! _)
   }
 
-  override def postStop() {
+  override def postStop(): Unit = {
     val _ = recurringTransmit.cancel()
   }
 
